@@ -127,6 +127,7 @@ On resuming, read the progress file and inspect the relevant repository state. G
 Preserve the README's concise, direct, practical tone in all future updates.
 Include only information needed at the current project stage; avoid unnecessary explanation or sections.
 Preserve Nik's edits rather than replacing them with earlier wording or formatting.
+Whenever reviewing Nik's edited text files, remove unnecessary trailing whitespace from every line in those files without changing their content or otherwise reformatting them.
 In Markdown prose, put each new sentence on a new source line without adding blank lines between sentences in the same paragraph.
 Keep setup instructions applicable to both Windows and macOS, with shell-specific commands clearly labelled.
 
@@ -138,5 +139,5 @@ When the acceptance check passes, say what passed and offer the next small step 
 
 ## Reference
 
-[1] OpenAI, **Custom instructions with AGENTS.md**, checked November 1, 2026.  
+[1] OpenAI, **Custom instructions with AGENTS.md**, checked November 1, 2026.
 https://developers.openai.com/codex/guides/agents-md
