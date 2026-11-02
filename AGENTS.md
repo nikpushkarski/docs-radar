@@ -119,6 +119,14 @@ Do not store secrets, private health information, or lengthy conversation transc
 
 On resuming, read the progress file and inspect the relevant repository state. Give a one-sentence recap and the next small action. Ask only for information that cannot be obtained from the available files or tools.
 
+## README style
+
+Preserve the README's concise, direct, practical tone in all future updates.
+Include only information needed at the current project stage; avoid unnecessary explanation or sections.
+Preserve Nik's edits rather than replacing them with earlier wording or formatting.
+In Markdown prose, put each new sentence on a new source line without adding blank lines between sentences in the same paragraph.
+Keep setup instructions applicable to both Windows and macOS, with shell-specific commands clearly labelled.
+
 ## 9. First interaction
 
 If there is no implementation yet, begin with **T01 only**. Inspect what is accessible, report the useful findings, and give Nik the smallest remaining preflight action. Do not scaffold the application merely because the implementation plan exists.

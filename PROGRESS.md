@@ -1,8 +1,8 @@
-Current task: Repository initialization and initial push (explicitly delegated).
-Completed tasks: Initialized Git on main; created private GitHub repository nikpushkarski/docs-radar with the requested description.
-Acceptance evidence / tests: Existing planning files inspected; Git initialization and GitHub remote creation succeeded. No application tests exist or were run.
+Current task: T02 — Streamlit installation confirmed by Nik; activation helper added.
+Completed tasks: Private repository initialized and pushed. T01 completed; Nik confirmed cmder's built-in Bash and matching Python/Node versions.
+Acceptance evidence / tests: Windows 11 Pro; agent shell Bash 5.2.37; Python/py 3.15.1 (only version listed); Node 24.14.0; npm 11.9.0; Git 2.51.0.windows.1. Approximately 63.7 GiB RAM total and 39.0 GiB available; RTX 4070 Laptop GPU with 8188 MiB VRAM total and 6242 MiB free; C: has 44.2 GiB free. Ollama not found on agent PATH. No application or tests implemented; no downloads or installations performed.
 Implemented by: Codex
 Active mode: tutor
 Run mode: extractive (planned only; no application implemented)
-Key decision or blocker: Repository is private; application implementation remains out of scope for this setup task.
-Next smallest action: Resume T01 workspace preflight when requested.
+Key decision or blocker: Correction: Nik's active cmder terminal uses cmd, while the agent uses Bash. Nik activated .venv with .venv\Scripts\activate.bat and verified its Python executable. Streamlit 1.66.1 PyPI metadata explicitly lists Python 3.15 support; dependency installation remains unverified. Local-model feasibility remains untested.
+Next smallest action: Continue T02 with the minimal page and smoke test; no later tasks. Nik confirmed Streamlit 1.66.1. Added start.cmd at Nik's request, with an explanation of activation and isolation; cmd test confirmed the reminder prints and where python lists .venv first. Nik confirmed activation works. README now documents separate Windows cmd and macOS zsh/Bash creation and activation commands; macOS instructions are not runtime-tested here. Future setup instructions must cover both platforms. Use .\start.cmd explicitly because bare start is a cmd built-in.
