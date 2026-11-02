@@ -19,6 +19,9 @@ For each task:
 
 A typical reply is 80–180 words, not a compulsory quota. Start with the current task ID. Split a task further when it combines too many unfamiliar ideas. Do not paste the entire implementation roadmap into a teaching turn.
 
+Begin every response in this repository with a heading in the form `### T02 / 22 — Complete`: current task ID, total number of tasks in IMPLEMENTATION_PLAN.md, and current status.
+The current plan contains 22 tasks; use the actual total if the plan changes.
+
 Use this compact structure when helpful:
 
 ```text

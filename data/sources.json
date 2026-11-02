@@ -1,0 +1,46 @@
+[
+  {
+    "id": "rupa-transition-schedule",
+    "title": "Rupa closes January 20, 2027: key dates and next steps",
+    "url": "https://support.fullscript.com/articles/rupa-closes-january-20-2027-key-dates-and-next-steps",
+    "last_modified": "2026-10-27",
+    "retrieved_on": "2026-11-01",
+    "audience": "Providers",
+    "supporting_sections": [                                                                                                                      
+      "Key dates",                                                                                                                                
+      "If you haven't moved your Rupa data"                                                                                                       
+    ],
+    "evidence_type": "demo_authored_summary",
+    "summary": "Providers should transfer their Rupa data (patients, orders, and history) to Fullscript by January 20, 2027, when Rupa login access closes. Fullscript strongly recommends completing the transfer before December 4, 2026 to avoid disrupting patients with outstanding orders.",
+    "summary_sha256": "ff6037366f4a9eae9c35caa3e91c6e9744fd3a8f6ca2341f8d9acbea90a2e25e" 
+  },
+  {
+    "id": "rupa-view-only",
+    "title": "What it means to be view-only on Rupa",
+    "url": "https://support.fullscript.com/articles/what-it-means-to-be-view-only-on-rupa",
+    "last_modified": "2026-10-30",
+    "retrieved_on": "2026-11-01",
+    "audience": "Providers",
+    "supporting_sections": [                                                                                                                      
+      "What to expect in ‘view-only’ Rupa accounts",                                                                                              
+      "What’s next?"                                                                                                                              
+    ],
+    "evidence_type": "demo_authored_summary",
+    "summary": "Since October 30, 2026, Rupa accounts have been view-only: providers can access historical records but must place all new lab orders through Fullscript. Providers should transfer their Rupa data to Fullscript before Rupa login access ends on January 20, 2027.",
+    "summary_sha256": "9d463e6e2321cea3806088162c06d1e4c853b8af96aefb67e6c42d34d553730d"
+  },
+  {
+    "id": "rupa-acquisition-faq",
+    "title": "Rupa Health Acquisition FAQs",
+    "url": "https://support.fullscript.com/articles/rupa-health-acquisition-faqs",
+    "last_modified": "2026-07-17",
+    "retrieved_on": "2026-11-01",
+    "audience": "Providers",
+    "supporting_sections": [                                                                                                                      
+      "How will this impact my workflow and patient care if I currently use Rupa Health?"                                                         
+    ],
+    "evidence_type": "demo_authored_summary",
+    "summary": "The FAQ states that Rupa providers can continue managing labs through their existing accounts without changes to workflows or patient experience during the integration. It describes a commitment to preserving data continuity and established lab processes while communicating future changes.",
+    "summary_sha256": "a804e0ef2f24e4b2f3cf8e95ef9a3e98edf927e6bd5dc5a084916f0382f0f77e"
+  }
+]
