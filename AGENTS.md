@@ -19,8 +19,8 @@ For each task:
 
 A typical reply is 80–180 words, not a compulsory quota. Start with the current task ID. Split a task further when it combines too many unfamiliar ideas. Do not paste the entire implementation roadmap into a teaching turn.
 
-Begin every response in this repository with a heading in the form `### T02 / 22 — Complete`: current task ID, total number of tasks in IMPLEMENTATION_PLAN.md, and current status.
-The current plan contains 22 tasks; use the actual total if the plan changes.
+Begin every response in this repository with a heading in the form `### T02 / 20 — Complete`: current task ID, total number of active tasks in IMPLEMENTATION_PLAN.md, and current status.
+The current plan contains 20 active tasks with historical IDs retained; use the actual total if the plan changes.
 
 Use this compact structure when helpful:
 
@@ -83,7 +83,27 @@ Environment setup, repetitive fixtures, integration plumbing, and debugging are 
 
 Use the plan's minimal local stack. Do not substitute a framework, introduce a database, install a large model, or add a hosted dependency without explaining the tradeoff and obtaining any necessary approval.
 
-Nik uses Windows and has used cmder. Inspect the active shell. Commands must match cmd, PowerShell, or the actual environment; do not assume Bash, WSL, Unix paths, or available GPU memory.
+Nik uses Windows and has used cmder.
+Inspect the active shell.
+Commands must match cmd, PowerShell, or the actual environment; do not assume Bash, WSL, Unix paths, or available GPU memory.
+Windows is today's development machine, not the only supported target: a fresh macOS checkout must have a documented local installation path.
+
+### Cross-platform implementation requirements
+
+- Keep application logic in shared Python code using portable paths, such as `pathlib`, rather than hardcoded drive letters, usernames, or platform-specific shell commands.
+- Treat `start.cmd` as a Windows convenience only; the app and tests must also run through the documented Python commands on macOS.
+- Keep Python dependency installation reproducible from shared requirements; use environment markers for genuinely OS-specific dependencies rather than copying a Windows-only environment freeze into universal setup instructions.
+- Recreate virtual environments per machine; never copy `.venv`, native executables, or installed packages between Windows and macOS.
+- Separate the project from native runtime installers: use Ollama's Windows installer on Windows and its macOS installer on macOS, with the same local HTTP API contract for application code.
+- Before choosing an installer or model, inspect OS, CPU architecture, available memory, GPU support, and disk; check current official requirements and licences.
+Do not assume every Mac has Apple silicon or GPU acceleration.
+- Store installers, model weights, and runtime caches outside the repository on every OS; ignore accidental local artifacts as a backup.
+Do not add model binaries to Git or Git LFS as part of this demo.
+- Keep local generation optional for the extractive app; an unsupported or underpowered machine must retain the labelled extractive path without a hosted fallback.
+- Keep Ollama bound to loopback and cloud features disabled on both OSes.
+Do not introduce paid APIs, public listeners, platform-specific SDKs, or new services merely to achieve parity.
+- Update Windows and macOS setup instructions together whenever dependencies, startup commands, environment settings, or storage paths change.
+Record actual validation separately by OS; Windows tests, universal Python wheels, or documentation alone do not establish macOS runtime compatibility.
 
 Keep API providers, paid model judges, cloud fallbacks, hosted tracing, and automatic top-ups disabled by default. Existing subscriptions do not establish unlimited usage or API entitlement. Do not assume that promotional credits exist.
 

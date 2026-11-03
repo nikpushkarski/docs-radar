@@ -1,0 +1,2 @@
+# Direct runtime dependency; transitive dependencies are not fully locked yet.
+streamlit==1.66.1

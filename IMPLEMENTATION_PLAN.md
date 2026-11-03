@@ -127,9 +127,23 @@ Question + audience + date ──> eligible-content filter ──> retrieval
 
 Use existing compatible Python where possible. Install Promptfoo locally and lock its version; verify its current Node requirement before installation. Current documentation recommends Node 24 LTS. [9] Do not build a separate HTTP service merely to connect Promptfoo.
 
+### Windows and macOS installation contract
+
+The same Python application, tests, content, and frozen evaluation fixtures must be usable from a fresh checkout on either OS.
+Use the shared requirements file and create a new virtual environment on each machine; `start.cmd` is optional Windows convenience, not an application dependency.
+Use portable paths and keep native installer actions outside the shared runtime code.
+
+Ollama is installed independently with the native Windows `.exe` or macOS `.dmg`; both expose the same loopback HTTP API.
+Keep installers, models, and runtime caches outside the repository on both systems, and disable cloud features.
+Check the actual architecture and memory: current macOS Ollama requires macOS 14+ and supports Apple silicon CPU/GPU or Intel CPU-only execution.
+Keep the extractive path available without Ollama, CUDA, or any model download.
+Document both setup paths, but report macOS as unverified until its installation and runtime checks are actually executed.
+
 ### Cost safeguards
 
-Local generation avoids a metered cloud-model dependency, but performance depends on the machine. No model tag is selected yet. Check RAM, available GPU memory, disk space, model download size, and licence before choosing one.
+Local generation avoids a metered cloud-model dependency, but performance depends on the machine.
+The initial T13 candidate is qwen3:4b; it has not been installed or run.
+Check RAM, available GPU memory, disk space, model download size, and licence before downloading, and record the exact runtime/model identifiers after installation.
 
 Standard GitHub-hosted runners in public repositories are free; larger runners are not. Private-repository compute and storage allowances need checking. [8] Publishing a repository is a separate decision requiring Nik's approval. Until then, run the same checks locally; do not change repository visibility to obtain free compute.
 

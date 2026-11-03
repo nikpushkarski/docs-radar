@@ -1,1 +1,9 @@
-{}
+{
+  "provider-migration-checklist.md": {
+    "topic_id": "provider-migration-checklist.md",
+    "fingerprint": "25404156806a74763c8c1dc9841c5a19d97fb3321fcbfcfa98d7d1b0a4b7bdb2",
+    "state": "demo_approved",
+    "reviewer": "Nik",
+    "approved_on": "2026-11-03"
+  }
+}

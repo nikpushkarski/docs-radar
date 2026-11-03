@@ -2,3 +2,15 @@
 __pycache__/
 *.py[cod]
 .playwright-cli/
+
+# Keep local model weights and installers outside the repository.
+/models/
+/.ollama/
+/downloads/
+/OllamaSetup.exe
+/ollama-*.zip
+/*.dmg
+/Ollama.app/
+*.gguf
+*.ggml
+*.safetensors
