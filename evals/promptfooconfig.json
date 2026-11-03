@@ -1,0 +1,172 @@
+{
+  "description": "Frozen 12-case extractive checks; deterministic checks are not human review",
+  "prompts": [
+    "{{request}}"
+  ],
+  "providers": [
+    {
+      "id": "file://provider.py",
+      "config": {
+        "mode": "extractive"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "description": "Q01",
+      "vars": {
+        "case_id": "Q01",
+        "request": "{\"inputs\": {\"question\": \"where should I put lab orders after october 2026?\", \"audience\": \"Providers\", \"reference_date\": \"2026-11-01\"}, \"fixture_id\": \"public-corpus-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q02",
+      "vars": {
+        "case_id": "Q02",
+        "request": "{\"inputs\": {\"question\": \"my doctor didn't move to Fullscript and I have to pay for an existing Rupa order, can I still pay for it?\", \"audience\": \"Patients\", \"reference_date\": \"2026-11-01\"}, \"fixture_id\": \"public-corpus-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q03",
+      "vars": {
+        "case_id": "Q03",
+        "request": "{\"inputs\": {\"question\": \"Has my doctor already transferred my Rupa data to Fullscript?\", \"audience\": \"Patients\", \"reference_date\": \"2026-11-01\"}, \"fixture_id\": \"public-corpus-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q04",
+      "vars": {
+        "case_id": "Q04",
+        "request": "{\"inputs\": {\"question\": \"When should I transfer my Rupa data, and why shouldn't I wait until login closes?\", \"audience\": \"Providers\", \"reference_date\": \"2026-12-03\"}, \"fixture_id\": \"public-corpus-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q05",
+      "vars": {
+        "case_id": "Q05",
+        "request": "{\"inputs\": {\"question\": \"When should I transfer my Rupa data, and why shouldn't I wait until login closes?\", \"audience\": \"Providers\", \"reference_date\": \"2026-12-04\"}, \"fixture_id\": \"public-corpus-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q06",
+      "vars": {
+        "case_id": "Q06",
+        "request": "{\"inputs\": {\"question\": \"What should I do now to transfer my Rupa data?\", \"audience\": \"Providers\", \"reference_date\": \"2027-01-19\"}, \"fixture_id\": \"public-corpus-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q07",
+      "vars": {
+        "case_id": "Q07",
+        "request": "{\"inputs\": {\"question\": \"What should I do now to transfer my Rupa data?\", \"audience\": \"Providers\", \"reference_date\": \"2027-01-20\"}, \"fixture_id\": \"public-corpus-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q08",
+      "vars": {
+        "case_id": "Q08",
+        "request": "{\"inputs\": {\"question\": \"Where should I place new lab orders?\", \"audience\": null, \"reference_date\": \"2026-11-01\"}, \"fixture_id\": \"public-corpus-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q09",
+      "vars": {
+        "case_id": "Q09",
+        "request": "{\"inputs\": {\"question\": \"Where should I place new lab orders?\", \"audience\": \"Providers\", \"reference_date\": \"2026-11-01\"}, \"fixture_id\": \"draft-only-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q10",
+      "vars": {
+        "case_id": "Q10",
+        "request": "{\"inputs\": {\"question\": \"Which portal should providers use for new lab orders?\", \"audience\": \"Providers\", \"reference_date\": \"2026-11-01\"}, \"fixture_id\": \"conflict-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q11",
+      "vars": {
+        "case_id": "Q11",
+        "request": "{\"inputs\": {\"question\": \"Where should providers place new lab orders, and which source supports that guidance?\", \"audience\": \"Providers\", \"reference_date\": \"2026-11-01\"}, \"fixture_id\": \"forged-citation-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    },
+    {
+      "description": "Q12",
+      "vars": {
+        "case_id": "Q12",
+        "request": "{\"inputs\": {\"question\": \"Where should providers place new lab orders?\", \"audience\": \"Providers\", \"reference_date\": \"2026-11-01\"}, \"fixture_id\": \"injected-instruction-v1\"}"
+      },
+      "assert": [
+        {
+          "type": "python",
+          "value": "file://assertions.py"
+        }
+      ]
+    }
+  ]
+}
