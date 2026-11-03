@@ -7,15 +7,17 @@
 
 Docs Radar flags docs that need updating when shared facts change.
 It answers questions with source-linked excerpts.
+Use **Content and changes** to inspect dependencies and review drafts, **Ask and inspect** for answers and evidence, and **Quality** for recorded results.
 
 ## Tech stack
 
 - **Python + Streamlit** — application logic and web UI.
-- **RAG / TF-IDF** — evidence retrieval is implemented; generation is planned.
-- **Ollama + Qwen3** — local-model installer; app integration pending.
+- **TF-IDF** — local, approval-aware evidence retrieval.
+- **Ollama + LangChain** — optional generation adapter; no successful live-model run yet.
 - **Markdown + JSON** — content, shared facts, approvals, and evaluation cases.
-- **unittest + Streamlit AppTest** — automated checks.
-- **LangChain, Promptfoo, GitHub Actions** — planned orchestration, evaluation, and CI.
+- **unittest + Streamlit AppTest** — automated checks; browser smoke-tested on Windows.
+- **Promptfoo** — real-pipeline provider/configuration; CLI execution pending installation.
+- **Local quality gate** — no hosted GitHub Actions enabled.
 
 ## Easy way to start
 
@@ -29,7 +31,9 @@ Install [Python 3.11.8+](https://www.python.org/downloads/), then open a termina
 Choose **Install extractive app only (no model)** for the quickest start.
 Use Up/Down and Enter to navigate, and review the download table before accepting.
 Open http://localhost:8501 after launching the app.
-The current app shows cited excerpts, not model-generated answers.
+The default app shows cited excerpts, not model-generated answers.
+The frozen quality suite currently passes 10/12 deterministic checks; Q02 patient coverage and Q05 post-recommendation guidance still fail.
+Live generation, Promptfoo CLI execution, and human citation-support review remain incomplete.
 
 <details>
 <summary>Need more? Expand setup details, current limitations, and verification checks</summary>
@@ -37,8 +41,9 @@ The current app shows cited excerpts, not model-generated answers.
 <details>
 <summary><strong>Local installation — Windows and macOS</strong></summary>
 
-The current extractive app needs Python 3.11+; Ollama is not required.
-The app is tested on Windows with Python 3.15.1; macOS is not runtime-tested.
+The extractive setup requires Python 3.11.8+; Ollama and Node are not required.
+The app, tests, CLI checks, and an Edge browser workflow are tested on Windows with Python 3.15.1.
+macOS installation and runtime are not tested.
 Application code lives in `docs_radar/`, setup tools and requirements in `scripts/`, and all tests in `tests/`.
 Content, data, and frozen evaluation fixtures remain in `content/`, `data/`, and `evals/`.
 
@@ -92,6 +97,8 @@ python -m streamlit run docs_radar/app.py
 ```
 
 Open http://localhost:8501 if the browser does not open automatically.
+Run from the repository root: `.streamlit/config.toml` binds the UI to `127.0.0.1` and disables usage telemetry.
+The content-review controls have no authentication; do not expose this server to the network.
 To see excerpts, choose Providers and reference date November 1, 2026, then ask where to place new lab orders.
 Verify startup with `python -m unittest tests.test_app`.
 Run all tests with `python -m unittest discover -s tests -q`.
@@ -107,7 +114,7 @@ An adapter in `docs_radar/generation.py` composes the approved retriever, LangCh
 Offline contract tests do not establish model quality.
 After explicitly choosing to download optional dependencies, run `python -m pip install -r scripts/requirements-model.txt` in the activated environment on either Windows or macOS.
 This pins the direct LangChain integration version; compatibility and transitive locking remain unverified until installation.
-It uses official standalone archives so installation stays in the terminal, without administrator access, a GUI installer or global PATH changes.
+The installer uses official standalone archives so installation stays in the terminal, without administrator access, a GUI installer or global PATH changes.
 It keeps a separate runtime rather than modifying an existing system-wide Ollama installation.
 
 | | Windows | macOS |
@@ -136,6 +143,11 @@ The server binds only to http://127.0.0.1:11435, sets `OLLAMA_NO_CLOUD=1`, and u
 It does not modify the default Ollama server on port 11434 or global user settings.
 Keep that terminal open; Enter or Ctrl+C stops the project server.
 Setup itself stops its temporary server on completion and records the selected model/digest in `models/setup.json`; it does not claim a generation smoke test passed.
+In **Ask and inspect**, choose **Live-model** and enter the installed tag from `models/setup.json`.
+The adapter never pulls models; missing dependencies/runtime or invalid output return explicit errors, not silent fallback.
+For all 12 evaluation cases, run `python -m evals.run --mode live-model --model <installed-tag>` in another activated terminal on either OS.
+This saves local provenance and outputs; human support review remains separate.
+The recorded live-path attempt has zero successful model calls and is labelled incomplete.
 If the machine cannot run a model comfortably, choose the extractive app—not a hosted fallback.
 
 Official references: [pinned runtime release](https://github.com/ollama/ollama/releases/tag/v0.40.14), [Windows](https://docs.ollama.com/windows), [macOS](https://docs.ollama.com/macos), [GGUF import](https://docs.ollama.com/import), [local-only configuration](https://docs.ollama.com/faq).
@@ -157,7 +169,7 @@ These check metadata validation, not answer quality or factual accuracy.
 </details>
 
 <details>
-<summary><strong>Check frozen evaluation fixtures</strong></summary>
+<summary><strong>Quality checks and frozen evaluation fixtures</strong></summary>
 
 - `evals/cases.json` — 12 cases, with inputs separate from expectations.
 - `evals/fixtures/` — five isolated test workspaces.
@@ -173,6 +185,37 @@ python -m evals.suite
 This checks the 12-case specification, frozen file hashes, and five fixture workspaces—not whether all 12 answers pass.
 Fixture approvals use a synthetic reviewer and temporary storage, never the real approval file.
 Changes to frozen expectations or fixture content need review and a new version; do not silently refresh hashes.
+
+Run these commands on either OS after activation:
+
+```text
+python -m evals.run --baseline reports/baseline-extractive-v2.json
+python -m scripts.quality_gate --demonstrate
+python -m scripts.quality_gate
+```
+
+The evaluator currently exits **1**: 10/12 deterministic passes, Source Recall@3 **6/7 (0.8571)** below 0.90, and Q02/Q05 failures.
+Citation validity/structural coverage are 14/14; factual support is unmeasured with 0/14 claims human-reviewed.
+The demonstration records an isolated control's exits **0 → 1 → 0**, not a full-suite pass.
+The full gate returns **2** while Promptfoo is not installed; its failed quality step remains visible.
+Reports identify code, corpus, dataset and mode; `reports/README.md` explains review and comparison.
+Raw outputs and fresh local reports stay in Git-ignored `reports/local/`.
+
+Optional Promptfoo requires Node 24 LTS.
+After explicitly choosing to install its pinned package, run from the repository root on either OS:
+
+```text
+npm install --prefix evals
+python -m scripts.run_promptfoo
+python -m scripts.run_promptfoo --negative-control
+python -m scripts.run_promptfoo --suite
+```
+
+The smoke should pass, the deliberately incorrect negative control should fail, and the full suite retains known quality failures.
+These Promptfoo CLI outcomes have not been executed here; only direct Python provider/assertion tests have run.
+The launcher never downloads packages automatically and disables telemetry/update checks.
+Promptfoo's direct version is pinned; a tested transitive package lock remains outstanding.
+No hosted model, paid judge, report upload or hosted CI is configured.
 
 </details>
 
@@ -209,6 +252,10 @@ The approval gate admits a topic only when its current fingerprint matches its s
 
 Eligible here means passing the approval gate, not guaranteed relevance to a question.
 Approvals apply only to this independent demo, not Fullscript.
+In **Content and changes**, inspect the rendered topic and facts before entering your reviewer name and confirming the exact version.
+**Save draft** validates metadata and invalidates an old approval when the content changes; it never reapproves it.
+**Remove answer eligibility** returns the topic to draft.
+If a topic or referenced fact changes during review, reload before approving.
 
 </details>
 
@@ -228,8 +275,11 @@ These are demo selection rules based on evidence captured November 1, 2026, not 
 The first interval starts on that capture date; earlier historical answers are not established by this snapshot.
 The audience/date filter is tested against routing fixtures and the migration topic's actual passages, including both date boundaries.
 Passage rules live in the topic's JSON metadata block, so changing them invalidates its approval fingerprint.
-Initial retrieval connects approval filtering, passage selection, and text ranking, returning evidence rather than a generated answer.
+Default retrieval connects approval filtering, passage selection, and text ranking, returning excerpts rather than generated prose.
 The approved provider migration topic can supply dated excerpts; other topics remain ineligible.
+The frozen corpus still lacks patient payment passages and the required rationale after the recommended transfer date; those failures are not waived.
+Instruction-like lines are filtered from excerpt guidance after retrieval, with raw text available only in labelled inspection.
+This narrow rule is not general prompt-injection protection.
 
 </details>
 

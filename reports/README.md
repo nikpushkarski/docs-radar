@@ -1,5 +1,9 @@
 # Evaluation records
 
+`verification.json` records the final Windows checks: 203 passing tests, actual loopback startup, and the three-view Edge browser smoke.
+`final-extractive-v2.json` records the final 10/12 run and unchanged quality failures with current code hashes.
+Optional package installation, live generation, human review, hosted CI and macOS runtime remain unverified.
+
 `baseline-extractive-v2.json` is the first recorded automated baseline, not a passing acceptance report.
 It runs all 12 frozen cases through the real extractive pipeline: 8 pass, Q02/Q05/Q07/Q12 fail, and mean Source Recall@3 is 6/7 (0.8571), below 0.90.
 Citation validity and structural coverage are 14/14; human citation accuracy is unmeasured with 0/14 claims reviewed.

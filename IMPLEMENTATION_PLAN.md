@@ -3,7 +3,9 @@
 **Owner:** Nik Pushkarski
 **Prepared:** November 1, 2026
 **Target:** A working local app with change-impact detection and evidence-grounded answers.
-**Status:** T01–T08 implemented at their recorded scope; see `PROGRESS.md` for actual checks and limitations.
+**Status:** Implemented through the final documentation step where local prerequisites permit; not all acceptance checks are complete.
+T13 uses the allowed extractive fallback; T14/T15/T18 lack live-model or installed Promptfoo evidence, and T17's full quality gate remains red/blocked.
+See `PROGRESS.md` and `reports/README.md` for actual checks and limitations.
 
 **Companion:** `AGENTS.md` governs how Codex teaches and implements this plan.
 
@@ -148,6 +150,7 @@ Document both setup paths, but report macOS as unverified until its installation
 
 Local generation avoids a metered cloud-model dependency, but performance depends on the machine.
 The initial T13 candidate is qwen3:4b; it has not been installed or run.
+An optional adapter exists, but T13 is recorded as extractive fallback and the T18 live-path attempt contains zero successful model calls.
 Check RAM, available GPU memory, disk space, model download size, and licence before downloading, and record the exact runtime/model identifiers after installation.
 
 Standard GitHub-hosted runners in public repositories are free; larger runners are not. Private-repository compute and storage allowances need checking. [8] Publishing a repository is a separate decision requiring Nik's approval. Until then, run the same checks locally; do not change repository visibility to obtain free compute.
@@ -197,6 +200,27 @@ Existing IDs are preserved for progress history; T20 (feedback instrumentation) 
 Every task must enable runtime behavior, a verification check, or essential reproducibility.
 Subdivide tasks when needed, but do not add editorial exercises or presentation artifacts as prerequisites.
 Dependencies follow numerical order unless a fallback is explicitly recorded.
+
+### Recorded implementation checkpoint
+
+Nik delegated the remaining queue and authorized incremental commits/pushes to the existing repository.
+This status records execution, not changed acceptance criteria.
+
+| Tasks | Actual status |
+| --- | --- |
+| T01–T12 | Complete at previously recorded scope |
+| T13 | Complete via explicit extractive fallback; no model smoke response |
+| T14 | Optional LangChain adapter and offline contract tests implemented; successful live execution remains incomplete |
+| T15 | Provider, assertions and pinned Promptfoo configuration implemented; CLI execution and transitive lock remain incomplete |
+| T16 | Metrics and immutable observed baseline implemented; human citation accuracy remains unmeasured |
+| T17 | Local gate and isolated fail/recover subprocess control implemented; full suite still fails Q02/Q05 and Recall@3, Promptfoo step blocked |
+| T18 | Incomplete live-path report recorded; zero successful model calls and no human support review |
+| T19 | Three functional views implemented; Windows AppTest and real Edge smoke checked |
+| T21 | Windows/macOS instructions and reproducible check commands documented; macOS runtime, clean native installation and optional-package locks remain unverified |
+
+The original frozen v2 corpus and expectations are unchanged.
+Runtime fixes improved Q07/Q12 without editing the benchmark; Q02/Q05 need reviewed corpus work before the full quality gate can pass.
+No passing live-model, hosted-CI, or human-review claim is made.
 
 ### Foundation and evidence
 
@@ -397,8 +421,9 @@ content/                # demo-authored Markdown topics
 data/                   # source register, facts, changes, runtime approvals
 evals/                  # frozen cases/fixtures and real-pipeline suite wrapper
 tests/                  # all unit/integration tests, app smoke test and fixtures
-reports/                # planned: small, attributable evaluation outputs
-.github/workflows/      # planned: model-free quality checks
+reports/                # attributable evaluation summaries; raw local outputs ignored
+.streamlit/             # loopback-only UI configuration; telemetry disabled
+# Hosted CI is not enabled; scripts/quality_gate.py runs the checks locally.
 ```
 
 Launch the app from the repository root with `python -m streamlit run docs_radar/app.py` after activating `.venv`.
@@ -412,14 +437,14 @@ Keep private snapshots, credentials, virtual environments, model weights, and se
 
 Before claiming completion, verify:
 
-- [ ] A supplied fact change flags dependent topics and leaves unrelated topics unflagged.
-- [ ] Questions retrieve eligible evidence and produce cited answers or explicit clarification/abstention.
-- [ ] Approval, source attribution, audience, and date behavior are demonstrated.
-- [ ] The same runtime functions serve the UI and evaluations.
-- [ ] Measured results identify the exact run; unrun checks remain unrun.
-- [ ] Any LangChain/local-model claim is backed by an actual successful execution.
-- [ ] No confidential material, real patient data, fabricated approvals, or invented business impact appears.
-- [ ] The app, README, and evaluation outputs distinguish real, synthetic, replayed, and planned capabilities.
+- [x] A supplied fact change flags dependent topics and leaves unrelated topics unflagged.
+- [x] Questions retrieve eligible evidence and produce cited answers or explicit clarification/abstention (not all frozen quality cases pass).
+- [x] Approval, source attribution, audience, and date behavior are demonstrated.
+- [x] The same runtime functions serve the UI and evaluations.
+- [x] Measured results identify the exact run; unrun checks remain unrun.
+- [ ] LangChain/local-model acceptance is backed by an actual successful execution — still incomplete; optional adapter only.
+- [x] No confidential material, real patient data, fabricated approvals, or invented business impact appears.
+- [x] The app, README, and evaluation outputs distinguish real, synthetic, replayed, and unverified capabilities.
 
 ## References
 
