@@ -4,6 +4,7 @@ import re
 
 
 ROOT = Path(__file__).resolve().parent
+FACT_REFERENCE_PATTERN = re.compile(r"\{\{fact:([^{}]+)\}\}")
 
 
 def render_topic(text, facts):
@@ -15,7 +16,7 @@ def render_topic(text, facts):
             raise ValueError(f"Unknown fact ID: {fact_id}")
         return facts_by_id[fact_id]["value"]
 
-    return re.sub(r"\{\{fact:([^{}]+)\}\}", replace_fact, text)
+    return FACT_REFERENCE_PATTERN.sub(replace_fact, text)
 
 
 if __name__ == "__main__":
