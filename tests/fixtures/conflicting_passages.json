@@ -1,0 +1,24 @@
+{
+  "evidence_type": "synthetic",
+  "description": "Fictional conflicting ordering instructions for retrieval tests; not Fullscript guidance.",
+  "passages": [
+    {
+      "topic_id": "synthetic-portal-a.md",
+      "source_id": "synthetic-source-a",
+      "body": "Providers must use Portal A for new lab orders, not Portal B.",
+      "audience": "Providers",
+      "valid_from": "2026-11-01",
+      "valid_until": null,
+      "unresolved_conflict_ids": ["synthetic-ordering-destination"]
+    },
+    {
+      "topic_id": "synthetic-portal-b.md",
+      "source_id": "synthetic-source-b",
+      "body": "Providers must use Portal B for new lab orders, not Portal A.",
+      "audience": "Providers",
+      "valid_from": "2026-11-01",
+      "valid_until": null,
+      "unresolved_conflict_ids": ["synthetic-ordering-destination"]
+    }
+  ]
+}

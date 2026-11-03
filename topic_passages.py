@@ -28,6 +28,11 @@ def build_topic_passages(topic_id, text, facts, sources):
         if not isinstance(passage_id, str) or not passage_id or passage_id in seen:
             raise ValueError("Passage IDs must be nonempty and unique within a topic")
         seen.add(passage_id)
+        conflict_ids = rule.get("unresolved_conflict_ids", [])
+        if not isinstance(conflict_ids, list) or any(
+            not isinstance(value, str) or not value.strip() for value in conflict_ids
+        ):
+            raise ValueError("unresolved_conflict_ids must be a list of nonempty strings")
         start = render_topic(rule["valid_from"], facts)
         end = (
             None if rule["valid_until"] is None
@@ -48,6 +53,7 @@ def build_topic_passages(topic_id, text, facts, sources):
             "audience": audience,
             "valid_from": start,
             "valid_until": end,
+            "unresolved_conflict_ids": sorted(set(conflict_ids)),
             "body": render_topic(section_body(body, rule["heading"]), facts),
         })
     return passages

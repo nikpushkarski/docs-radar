@@ -8,7 +8,10 @@ Basic Streamlit page, three attributed source summaries, and three written quest
 Source validation checks required provenance fields and allowed review states; three automated tests cover valid data, missing provenance, and an invalid review state.
 CLI scripts also render shared facts, identify affected topics for a supplied synthetic change, and calculate content fingerprints.
 A standalone approval gate excludes topics without a matching demo approval; no real approvals have been recorded.
-Retrieval, AI answers, answer evaluations, and CI gates are not implemented yet.
+Initial CLI retrieval combines approval checks, audience/date selection, and local TF-IDF ranking.
+Only the provider migration topic currently declares answer passages.
+Explicit unresolved-conflict flags return a conflict result instead of answer context; contradictions are not detected automatically.
+AI answers, answer evaluations, and CI gates are not implemented yet.
 
 ## Use
 
@@ -82,4 +85,5 @@ These are demo selection rules based on evidence captured November 1, 2026, not 
 The first interval starts on that capture date; earlier historical answers are not established by this snapshot.
 The audience/date filter is tested against routing fixtures and the migration topic's actual passages, including both date boundaries.
 Passage rules live in the topic's JSON metadata block, so changing them invalidates its approval fingerprint.
-Approval filtering, passage selection, and text ranking are not yet connected into a retrieval pipeline.
+Initial retrieval connects approval filtering, passage selection, and text ranking, returning evidence rather than a generated answer.
+With no real approvals recorded, a normal retrieval run currently returns `no_approved_topics`.
