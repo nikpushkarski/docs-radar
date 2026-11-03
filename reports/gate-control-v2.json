@@ -1,0 +1,26 @@
+{
+  "scope": "Isolated Q01 configuration control; not a full-suite pass",
+  "provenance": {
+    "commit": "88fe41d2fad856a64137c0aa3d30791598ac3421",
+    "dirty": true,
+    "code_hash": "b4443858e2b78e1c9af2d646225a335c36572c392b8d6886d657cd0694498f03"
+  },
+  "steps": [
+    {
+      "name": "clean",
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "name": "injected",
+      "exit_code": 1,
+      "status": "failed"
+    },
+    {
+      "name": "repaired",
+      "exit_code": 0,
+      "status": "passed"
+    }
+  ],
+  "demonstration_pass": true
+}

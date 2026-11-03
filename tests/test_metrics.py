@@ -69,7 +69,8 @@ class MetricTests(unittest.TestCase):
     def test_fixed_suite_records_existing_failures_without_relaxation(self):
         report, _ = evaluate()
         self.assertEqual(len(report["cases"]), 12)
-        self.assertTrue({"Q02", "Q05", "Q07", "Q12"} <= set(report["summary"]["critical_failures"]))
+        # Runtime fixes improve Q07/Q12; frozen corpus gaps still fail, not waived.
+        self.assertEqual(set(report["summary"]["critical_failures"]), {"Q02", "Q05"})
         self.assertFalse(report["summary"]["automated_gate_pass"])
         self.assertIsNone(report["summary"]["manual_citation_accuracy"]["value"])
         self.assertEqual(report["summary"]["manual_review_coverage"]["value"], 0)

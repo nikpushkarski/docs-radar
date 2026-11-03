@@ -4,6 +4,7 @@ import json
 import re
 from urllib.parse import urlparse
 
+from docs_radar.answer_policy import guidance_text, unsupported_procedure
 from docs_radar.passage_selection import parse_date
 from docs_radar.retrieval import load_workspace, retrieve
 
@@ -108,17 +109,20 @@ def extractive_answer(question, audience=None, reference_date=None, *, workspace
     except (KeyError, TypeError, ValueError):
         return {**result, "status": "error", "reason": "invalid_citation",
                 "answer_text": "A supporting citation could not be resolved to a valid registered source."}
-    return {
-        **result,
-        "status": "answered",
-        "answer_text": "Relevant evidence excerpts (not a generated answer):\n\n" + "\n\n".join(
-            passage["body"] for passage in evidence["passages"]
-        ),
-        "claims": [
-            {"text": passage["body"], "supporting_evidence_ids": [passage["id"]]}
-            for passage in evidence["passages"]
-        ],
-        "citations": citations,
-        "retrieved_source_ids": evidence["retrieved_source_ids"],
-        "passages": evidence["passages"],
-    }
+    claims = [
+        {"text": guidance_text(passage["body"]), "supporting_evidence_ids": [passage["id"]]}
+        for passage in evidence["passages"] if guidance_text(passage["body"])
+    ]
+    used = {i for claim in claims for i in claim["supporting_evidence_ids"]}
+    citations = [c for c in citations if c["evidence_id"] in used]
+    context = {**result, "retrieved_source_ids": evidence["retrieved_source_ids"],
+               "passages": evidence["passages"]}
+    if not claims:
+        return {**context, "reason": "no_safe_guidance",
+                "answer_text": "The retrieved text contains no usable answer guidance after instruction-line filtering."}
+    text = "\n\n".join(claim["text"] for claim in claims)
+    if unsupported_procedure(question, evidence["passages"]):
+        return {**context, "reason": "unsupported_procedure", "claims": claims, "citations": citations,
+                "answer_text": "I cannot provide a supported procedure for this request. Context only:\n\n" + text}
+    return {**context, "status": "answered", "claims": claims, "citations": citations,
+            "answer_text": "Relevant evidence excerpts (not a generated answer):\n\n" + text}

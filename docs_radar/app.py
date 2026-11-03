@@ -26,9 +26,12 @@ if submitted:
         st.subheader("Relevant excerpts")
         st.caption("Text matches are evidence candidates, not proof that every part of your question is answered.")
         citations = {citation["evidence_id"]: citation for citation in result["citations"]}
-        for passage in result["passages"]:
-            citation = citations[passage["id"]]
-            st.text(passage["body"])
+        passages = {p["id"]: p for p in result["passages"]}
+        for claim in result["claims"]:
+            evidence_id = claim["supporting_evidence_ids"][0]
+            passage = passages[evidence_id]
+            citation = citations[evidence_id]
+            st.text(claim["text"])
             st.link_button(citation["source_title"], citation["source_url"])
             st.caption(
                 f"Evidence: {passage['id']} | Type: {citation['evidence_type']} | "

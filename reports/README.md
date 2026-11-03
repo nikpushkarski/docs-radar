@@ -9,6 +9,12 @@ A valid citation does not establish factual support.
 The scorer was corrected to accept equivalent ISO/prose dates, with regression tests for both formats, before recording the baseline.
 No frozen question, expected fact, corpus, or threshold changed.
 Neither report is overwritten automatically.
+`extractive-runtime-fixes-v2.json` records 10/12 deterministic passes after runtime fixes for Q07 and Q12, with the same frozen corpus and no newly failing critical cases.
+Q02/Q05 and the Recall@3 threshold still fail; this is not a green release gate.
+`gate-control-v2.json` records real subprocess exits 0 → 1 → 0 for an isolated missing-approval configuration regression and repair, not the full quality suite.
+The full local gate is `python -m scripts.quality_gate`; `--demonstrate` runs that isolated control.
+Promptfoo is blocked until explicitly installed, and hosted CI has not been enabled or run.
+One Windows temporary-directory rename test raised WinError 5 during the first gate invocation; the individual test and all 193 tests passed on rerun without changing the test.
 Reports carry code hashes and Git dirty state because implementation was not yet committed when these checks ran.
 
 Run `python -m evals.run --baseline reports/baseline-extractive-v2.json` on Windows or macOS after environment activation.
