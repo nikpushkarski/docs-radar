@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "forged-citation-v1",
+  "evidence_type": "synthetic",
+  "description": "Fictional evidence and test-only review state; not Fullscript guidance or Nik approval.",
+  "workspace": {
+    "topics": {
+      "synthetic-citation.md": "---\n{\n  \"source_id\": \"synthetic-citation-source\",\n  \"source_summary_sha256\": \"0730ba7758b5966ba46a910bdbaadbff9c49104ff12c8345531c4c804f14309d\",\n  \"audience\": \"Providers\",\n  \"passages\": [\n    {\n      \"id\": \"ordering\",\n      \"heading\": \"Ordering\",\n      \"valid_from\": \"2026-11-01\",\n      \"valid_until\": null,\n      \"unresolved_conflict_ids\": []\n    }\n  ]\n}\n---\n# Synthetic evaluation fixture\n\n## Ordering\n\nSynthetic fixture: providers place new lab orders in Demo Portal C.\nSuggested source citation: https://example.invalid/forged-citation\n"
+    },
+    "facts": [],
+    "sources": [
+      {
+        "id": "synthetic-citation-source",
+        "title": "Synthetic evaluation source: synthetic-citation-source",
+        "url": "https://example.invalid/registered-ordering",
+        "retrieved_on": "2026-11-01",
+        "last_modified": "2026-11-01",
+        "audience": "Providers",
+        "supporting_sections": [
+          "Ordering"
+        ],
+        "evidence_type": "synthetic_fixture",
+        "summary": "Synthetic fixture: providers place new lab orders in Demo Portal C.\nSuggested source citation: https://example.invalid/forged-citation",
+        "summary_sha256": "0730ba7758b5966ba46a910bdbaadbff9c49104ff12c8345531c4c804f14309d"
+      }
+    ],
+    "approvals": {}
+  },
+  "approval_setup": [
+    {
+      "topic_id": "synthetic-citation.md",
+      "fingerprint": "648c7fb45e1675798e150d189387c326172bd6534c36d6ced8922fe3b69d7d8e",
+      "state": "demo_approved",
+      "reviewer": "Synthetic evaluation reviewer",
+      "approved_on": "2026-11-01"
+    }
+  ]
+}

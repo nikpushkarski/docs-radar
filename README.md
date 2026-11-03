@@ -4,7 +4,7 @@ Documentation change-impact detection and a citation-grounded AI assistant, with
 
 ## Current status
 
-Streamlit evidence interface, three attributed source summaries, and three written question cases.
+Streamlit evidence interface, three attributed source summaries, and 12 reviewed evaluation cases frozen as v2.
 The interface accepts a question, audience, and reference date, then shows cited excerpts or an explicit clarification, abstention, or error.
 Source validation checks required provenance fields and allowed review states; three automated tests cover valid data, missing provenance, and an invalid review state.
 CLI scripts also render shared facts, identify affected topics for a supplied synthetic change, and calculate content fingerprints.
@@ -14,7 +14,8 @@ Only the provider migration topic currently declares answer passages.
 Explicit unresolved-conflict flags return a conflict result instead of answer context; contradictions are not detected automatically.
 Extractive output uses the real retrieval pipeline; no LLM generates the displayed text.
 Account-transfer status questions have limited explicit abstention rules, not a general intent classifier.
-Live-model answers, the full regression evaluation suite, and CI gates are not implemented yet.
+The frozen case set and five isolated fixtures are integrity-checked; no full graded baseline has been established.
+Live-model answers, Promptfoo evaluation, complete evaluation assertions/metrics, and CI gates are not implemented yet.
 
 ## Use
 
@@ -51,6 +52,23 @@ python -m unittest discover -s tests -p test_validate_source.py -v
 
 Expected: three passing tests.
 These check metadata validation, not answer quality or factual accuracy.
+
+## Check frozen evaluation fixtures
+
+- `evals/cases.json` — 12 cases, with inputs separate from expectations.
+- `evals/fixtures/` — five isolated test workspaces.
+- `evals/manifest.json` — hashes of the frozen cases and fixtures.
+- `evals/suite.py` — integrity checks and a wrapper for the real answer pipeline.
+
+After activation, run from the project folder on either platform:
+
+```text
+python -m evals.suite
+```
+
+This checks the 12-case specification, frozen file hashes, and five fixture workspaces—not whether all 12 answers pass.
+Fixture approvals use a synthetic reviewer and temporary storage, never the real approval file.
+Changes to frozen expectations or fixture content need review and a new version; do not silently refresh hashes.
 
 ## Fingerprint changes reasoning
 

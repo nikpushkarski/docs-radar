@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "test_set_version": "v2",
+  "accepted_by": "Nik",
+  "accepted_on": "2026-11-03",
+  "acceptance_scope": "Evaluation expectations only; fixture approvals are synthetic.",
+  "snapshot_code_commit": "334ad123f549b92a7147430671b45d278df27cc6",
+  "hashing": "SHA-256 of UTF-8 text after universal newline normalization to LF; not a cryptographic signature.",
+  "files": {
+    "cases.md": "34dcfcbc68aefcc620f97461a96102acd924804f9e6a9fb07fa487c64b12e166",
+    "cases.json": "8de3fb4e3ddec0024b4bec0fc96942dade4fbbe8a4cbb6b02ae0f200b80d40ee",
+    "fixtures/public-corpus-v1.json": "b338bb25eee6ac745c4b960adb4961eea14443ff31b875ca675974f0238e5f39",
+    "fixtures/draft-only-v1.json": "4129ea1c5508356f7ef13ea4e2190b7e9c1cdc8a87538baf52ee798b6bbcd3a2",
+    "fixtures/conflict-v1.json": "5e6f80c071916a5df6e7c7befc632276b428c0882831cb19065ff84bd3e0f07d",
+    "fixtures/forged-citation-v1.json": "740486743554bf41d5349d275513c98d6efb5800cbf1d6636640ab4d53727866",
+    "fixtures/injected-instruction-v1.json": "a2d358c700477cb0db6fc14d7caf28e0d1e2a6d3755ebebddec5ea56aa19318c"
+  },
+  "fixtures": {
+    "public-corpus-v1": "fixtures/public-corpus-v1.json",
+    "draft-only-v1": "fixtures/draft-only-v1.json",
+    "conflict-v1": "fixtures/conflict-v1.json",
+    "forged-citation-v1": "fixtures/forged-citation-v1.json",
+    "injected-instruction-v1": "fixtures/injected-instruction-v1.json"
+  },
+  "bundle_sha256": "eeb5c8943255702dcc405bfac4854f9c9d7d8f7f90508af2482cf284024e3405",
+  "baseline_status": "not_established"
+}

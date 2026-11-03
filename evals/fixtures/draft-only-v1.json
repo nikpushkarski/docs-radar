@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "draft-only-v1",
+  "evidence_type": "synthetic",
+  "description": "Fictional evidence and test-only review state; not Fullscript guidance or Nik approval.",
+  "workspace": {
+    "topics": {
+      "synthetic-draft.md": "---\n{\n  \"source_id\": \"synthetic-draft-source\",\n  \"source_summary_sha256\": \"29e81f42f2bd7365f4bd59b73dc410e5a9cbb0f797cfce30175dcb2349616ddd\",\n  \"audience\": \"Providers\",\n  \"passages\": [\n    {\n      \"id\": \"ordering\",\n      \"heading\": \"Ordering\",\n      \"valid_from\": \"2026-11-01\",\n      \"valid_until\": null,\n      \"unresolved_conflict_ids\": []\n    }\n  ]\n}\n---\n# Synthetic evaluation fixture\n\n## Ordering\n\nSynthetic fixture: providers place new lab orders in Demo Portal D.\n"
+    },
+    "facts": [],
+    "sources": [
+      {
+        "id": "synthetic-draft-source",
+        "title": "Synthetic evaluation source: synthetic-draft-source",
+        "url": "https://example.invalid/draft-ordering",
+        "retrieved_on": "2026-11-01",
+        "last_modified": "2026-11-01",
+        "audience": "Providers",
+        "supporting_sections": [
+          "Ordering"
+        ],
+        "evidence_type": "synthetic_fixture",
+        "summary": "Synthetic fixture: providers place new lab orders in Demo Portal D.",
+        "summary_sha256": "29e81f42f2bd7365f4bd59b73dc410e5a9cbb0f797cfce30175dcb2349616ddd"
+      }
+    ],
+    "approvals": {}
+  },
+  "approval_setup": [
+    {
+      "topic_id": "synthetic-draft.md",
+      "fingerprint": "2271c67348ce2d13da65c511486c3ae7aa1c927f5fc02ad39d46dbdb4c7345ff",
+      "state": "draft",
+      "reviewer": "Synthetic evaluation reviewer",
+      "approved_on": "2026-11-01"
+    }
+  ]
+}
