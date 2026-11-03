@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "task": "T13",
+  "status": "local_response_produced",
+  "platform": {
+    "system": "Windows",
+    "architecture": "amd64",
+    "os_version": "10.0.26200",
+    "total_ram": 68446707712,
+    "available_ram": 39213096960,
+    "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "free_vram": 6199181312,
+    "free_disk": 168966307840,
+    "notes": "NVIDIA free VRAM is measured when available; AMD/unknown acceleration uses the CPU sizing policy."
+  },
+  "runtime_version": "0.40.14",
+  "runtime_archive_sha256": "65d68cade6cf6375f398b518224f8c8a15e062387f38cf477abfc848de7e7e29",
+  "model": "qwen3:4b",
+  "model_digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+  "quantization": "Q4_K_M",
+  "context_tokens": 4096,
+  "options": {
+    "temperature": 0,
+    "seed": 0,
+    "num_ctx": 4096,
+    "num_predict": 512
+  },
+  "requested_thinking": false,
+  "elapsed_seconds": 6.67,
+  "finish_reason": "stop",
+  "final_answer": "Fullscript",
+  "raw_response_sha256": "85a9498ea0265179568e5c9497ebc0a10c218a732e2e8677d58651677b3404b4",
+  "limitations": [
+    "Initial 200-token attempt truncated; subsequent 512-token attempt finished.",
+    "Raw response still included reasoning despite no-thinking request; structured application integration requires additional validation.",
+    "This smoke is not the frozen-suite evaluation or human citation-support review."
+  ],
+  "model_size_vram_bytes": 3180247121
+}
