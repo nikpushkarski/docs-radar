@@ -157,13 +157,13 @@ class AnswerUiTest(WorkspaceTestCase):
             app = self.submit()
         self.assertTrue(any("Extractive mode" in element.value for element in app.info))
         self.assertTrue(any("place new lab orders through Fullscript" in element.value for element in app.text))
-        self.assertGreater(len(app.get("link_button")), 0)
+        self.assertGreater(len(app.tabs[0].get("link_button")), 0)
 
     def test_ui_explains_no_approval(self):
         with patch("docs_radar.answers.load_workspace", return_value=self.workspace):
             app = self.submit()
         self.assertTrue(any("No demo-approved content" in element.value for element in app.warning))
-        self.assertEqual(len(app.get("link_button")), 0)
+        self.assertEqual(len(app.tabs[0].get("link_button")), 0)
 
     def test_ui_asks_for_audience(self):
         with patch("docs_radar.answers.load_workspace", return_value=self.workspace):

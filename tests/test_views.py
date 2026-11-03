@@ -1,0 +1,48 @@
+from copy import deepcopy
+from pathlib import Path
+import unittest
+from unittest.mock import patch
+
+from streamlit.testing.v1 import AppTest
+
+from docs_radar.quality_view import available_reports, report_freshness
+from evals.run import evaluate
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class ViewTests(unittest.TestCase):
+    def test_three_views_and_no_implicit_approval(self):
+        approvals = (ROOT / "data/approvals.json").read_bytes()
+        app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=15).run()
+        self.assertFalse(app.exception)
+        self.assertEqual([tab.label for tab in app.tabs], ["Ask and inspect", "Content and changes", "Quality"])
+        self.assertTrue(any("SYNTHETIC" in item.value for item in app.warning))
+        self.assertTrue(any("Human citation-support review is incomplete" in item.value for item in app.warning))
+        self.assertEqual((ROOT / "data/approvals.json").read_bytes(), approvals)
+
+    def test_report_freshness_checks_code_and_dataset(self):
+        report, _ = evaluate()
+        self.assertEqual(report_freshness(report), [])
+        report["provenance"]["code_hash"] = "old"
+        self.assertTrue(any("code differs" in reason for reason in report_freshness(report)))
+        report["provenance"]["test_set_hash"] = "old"
+        self.assertTrue(any("test-set" in reason for reason in report_freshness(report)))
+
+    def test_recorded_live_attempt_is_not_current_live_evidence(self):
+        report = available_reports(ROOT)["reports/live-model-attempt-v2.json"]
+        self.assertIn("No complete live-model evidence", report_freshness(report))
+
+    def test_live_request_shows_error_without_fallback(self):
+        app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=15).run()
+        from datetime import date
+        app.text_input[0].input("Where should I place new lab orders?")
+        app.selectbox[0].select("Providers")
+        app.date_input[0].set_value(date(2026, 11, 1))
+        app.radio[0].set_value("Live-model (optional, unverified)")
+        app.text_input[1].input("qwen3:4b")
+        with patch("docs_radar.generation.invoke_local", side_effect=ImportError):
+            app.button[0].click().run()
+        self.assertFalse(app.exception)
+        self.assertTrue(any("Local generation is unavailable" in item.value for item in app.tabs[0].error))
+        self.assertFalse(app.tabs[0].get("link_button"))
