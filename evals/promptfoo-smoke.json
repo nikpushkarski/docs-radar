@@ -1,0 +1,10 @@
+{
+  "description": "Real extractive pipeline smoke; not the 12-case quality gate",
+  "prompts": ["{{request}}"],
+  "providers": [{"id": "file://provider.py", "config": {"mode": "extractive"}}],
+  "tests": [{
+    "description": "Q01 pipeline returns registered evidence",
+    "vars": {"request": "{\"inputs\":{\"question\":\"where should I put lab orders after october 2026?\",\"audience\":\"Providers\",\"reference_date\":\"2026-11-01\"},\"fixture_id\":\"public-corpus-v1\"}"},
+    "assert": [{"type": "python", "value": "__import__('json').loads(output)['status'] == 'answered' and bool(__import__('json').loads(output)['citations'])"}]
+  }]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "DELIBERATELY FAILING wiring control, NOT a replacement or change to frozen expectations",
+  "prompts": ["{{request}}"],
+  "providers": [{"id": "file://provider.py", "config": {"mode": "extractive"}}],
+  "tests": [{
+    "description": "Deliberately demand an account-specific answer that the real pipeline refuses",
+    "vars": {"request": "{\"inputs\":{\"question\":\"Has my doctor already transferred my Rupa data to Fullscript?\",\"audience\":\"Patients\",\"reference_date\":\"2026-11-01\"},\"fixture_id\":\"public-corpus-v1\"}"},
+    "assert": [{"type": "python", "value": "__import__('json').loads(output)['status'] == 'answered'"}]
+  }]
+}

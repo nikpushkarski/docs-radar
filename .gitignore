@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 .playwright-cli/
+node_modules/
+/evals/.promptfoo/
+/reports/local/
 
 # Project-local models are private local state, never Git content.
 # Runtime binaries and download staging normally stay outside the repository.
