@@ -1,29 +1,38 @@
 # Fullscript Docs Radar — Implementation Plan
 
-**Owner:** Nik Pushkarski  
-**Prepared:** November 1, 2026  
-**Target:** First screening on Wednesday, November 4, 2026, based on the interview timing discussed.  
-**Status:** Planning only. No application, evaluations, or results have been implemented by creating this document.  
+**Owner:** Nik Pushkarski
+**Prepared:** November 1, 2026
+**Target:** A working local app with change-impact detection and evidence-grounded answers.
+**Status:** T01–T08 implemented at their recorded scope; see `PROGRESS.md` for actual checks and limitations.
+
 **Companion:** `AGENTS.md` governs how Codex teaches and implements this plan.
 
 ## 1. The project in one paragraph
 
-Build a small documentation-quality workbench using selected public Fullscript support material. Demonstrate one complete story: a product change affects several articles; the system identifies the dependencies; a writer proposes and reviews a correction; an assistant answers from eligible content with citations; regression checks detect a deliberately introduced mistake. The main deliverable is evidence of editorial judgment, supported by working software—not a chatbot with a long tool list.
+Build a local app using selected public Fullscript support material for two functions:
+
+1. Identify which topics need updating when a tracked fact changes.
+2. Retrieve eligible evidence and answer freeform questions with citations, or abstain when the evidence is insufficient.
+
+Validation, content eligibility, and evaluations support those functions.
+The deliverable is working software, not a writing portfolio or an interview-preparation package.
+Initial impact detection uses explicit fact references and supplied change records, including clearly labelled simulations; it is not live website monitoring.
 
 **Budget rule:** No additional paid services, subscriptions, API usage, or hardware purchases without Nik's explicit approval. Local operation is the default. A hosted application is not required.
 
-## 2. Why this fits the role
+## 2. Functional scope
 
-The advertised position emphasizes support-content ownership, information architecture, reusable facts, release impact, AI-ready topics, governance, and effectiveness measurement. It also remains a hands-on writing role. [1]
-
-| Evidence in the demo | What it demonstrates |
+| Component | Runtime purpose |
 | --- | --- |
-| A small content schema and controlled vocabulary | Information architecture and audience-aware content |
-| One shared fact used in two articles | Single-sourcing rather than duplicated maintenance |
-| An affected-article queue with reasons and owners | Release impact assessment |
-| A before/after article and review history | Writing, editorial decisions, and governance |
-| Grounded answers and a fixed evaluation set | AI readiness and quality assurance |
-| A measurement specification with honest limitations | Outcome-oriented thinking |
+| Source register and topic metadata | Trace evidence and filter by applicability |
+| Shared facts and topic references | Reuse values and identify dependencies |
+| Impact report | List affected topics and the changed facts that caused the alert |
+| Machine-readable approval record | Restrict answers to the exact reviewed content version |
+| Retrieval and answers | Select supporting passages and return cited answers or abstentions |
+| Tests and evaluations | Detect invalid content, retrieval errors, and answer regressions |
+
+A prose editorial rationale is not an application dependency.
+Writer discussions and revision reasoning can remain outside the app; no Jira-like review documents or separate before/after essays are required.
 
 **Do not claim this is Fullscript's internal technology stack.** LangChain and Promptfoo are our implementation choices. This uses their public content and product context; it is not an integration with private Fullscript systems.
 
@@ -60,15 +69,26 @@ A local Streamlit app with three views:
 
 1. **Content and changes:** Source register, shared facts, affected articles, draft correction, and review state.
 2. **Ask and inspect:** Question, audience, reference date, answer, and the exact supporting passages.
-3. **Quality:** Evaluation results, failures, run provenance, and unmeasured business outcomes.
+3. **Quality:** Evaluation results, failures, and run provenance for the actual pipeline.
 
 ### Keep these even when simplifying
 
-One release scenario; one shared fact; one dependency-based impact alert; one substantial writing sample; approval-aware retrieval; traceable citations; a fixed test set; and a demonstrated failing-then-passing quality gate.
+One change scenario; one shared fact; one dependency-based impact report; usable source-backed topics; approval-aware retrieval; traceable citations; a fixed test set; and a demonstrated failing-then-passing quality gate.
 
-### Cut these first
+### Scope gate for every next step
 
-Hosting, visual polish, extra articles, feedback instrumentation, semantic embeddings, and automated claim extraction. Do not add authentication, multi-agent orchestration, a full CMS, OAuth, a vector database, or live patient data.
+Before assigning work, identify the runtime behavior, test, or essential setup instruction it enables.
+If it enables none of those, do not make it a task or a prerequisite.
+Do not reintroduce optional presentation work without Nik explicitly requesting it.
+Existing Git history is sufficient for examining earlier content; no separate editorial review files are required.
+
+### Out of scope unless explicitly requested
+
+Editorial-rationale documents, portfolio writing samples, interview rehearsals, pitch scripts, demo recordings, screenshots for presentation, feedback instrumentation, and business-measurement specifications.
+Evaluation reports remain in scope because they record actual pipeline results, not promotional claims.
+
+Also exclude hosting, visual polish, extra articles before the core works, semantic embeddings, and automated claim extraction.
+Do not add authentication, multi-agent orchestration, a full CMS, OAuth, a vector database, or live patient data.
 
 **Hardware fallback:** If a local model is impractical, ship an explicitly labelled extractive evidence assistant. Continue testing retrieval, governance, citations, and CI. Do not describe extractive output, mocks, or recordings as live generative AI. A working LangChain-to-model integration remains an unfinished feature until actually run.
 
@@ -79,7 +99,7 @@ Public source register ──> reviewed content + versioned shared facts
                                       │
 Release change ──> fact dependencies ──┴──> affected-article review queue
                                                     │
-                                  writer's revision + human approval
+                                  topic update + eligibility approval
                                                     │
 Question + audience + date ──> eligible-content filter ──> retrieval
                                                              │
@@ -124,13 +144,17 @@ Implement only fields needed for this scenario; add complexity when a test requi
 | Source | Stable ID, title, URL, captured date, published/modified date if available, evidence type, content hash |
 | Topic/passage | Stable ID, source ID, content version, audience, region or `unknown`, topic, body, fact references |
 | Fact | Stable ID, value, version, applicable audience/conditions, effective interval, supporting passage, supersession relation when established |
-| Review | Content ID and hash, state, reviewer, review date, decision, reason, unresolved questions |
+| Approval | Content ID, hash covering topic and referenced fact values/versions, state, reviewer, approval date |
 | Release/change | ID, effective date, changed fact IDs, evidence, affected audiences |
 | Evaluation case | ID, question, audience, reference date, optional migration state, expected behavior, gold source IDs, criticality |
 
 Review states: `captured → draft → demo_approved → deprecated → archived`. A source can remain available for audit without being eligible to answer a question.
 
-Approval is tied to an exact content hash. Editing approved content invalidates approval. Unknown audience/region applicability must not silently become universal. Validity dates and capture dates are separate fields; use date-level examples rather than inventing an unspecified cutover time.
+Approval is a machine-readable eligibility record, not a prose review note.
+Its hash must cover the topic and the referenced fact values/versions used to render it.
+Editing either invalidates approval.
+Unknown audience/region applicability must not silently become universal.
+Validity dates and capture dates are separate fields; use date-level examples rather than inventing an unspecified cutover time.
 
 A shared fact must actually render into at least two demo-authored topics. A manually curated `fact_id → article_ids` dependency map is enough for impact detection; label it rule-based, not semantic AI detection.
 
@@ -149,149 +173,148 @@ Resolve citation links from the source register, not from model-invented URLs. D
 
 ## 7. Build queue: one task per interaction
 
-Every task has one observable outcome. Codex should subdivide any task that feels too large rather than hand over this whole queue. Dependencies follow numerical order unless a fallback is explicitly recorded.
+There are 20 active tasks.
+Existing IDs are preserved for progress history; T20 (feedback instrumentation) and T22 (interview rehearsal) have been removed from scope, not completed.
+Every task must enable runtime behavior, a verification check, or essential reproducibility.
+Subdivide tasks when needed, but do not add editorial exercises or presentation artifacts as prerequisites.
+Dependencies follow numerical order unless a fallback is explicitly recorded.
 
 ### Foundation and evidence
 
 #### T01 — Check the workspace
 
-**Learn:** The coding assistant and the application's model are different tools.  
-**Do:** Inspect the repository, active shell, Python/Node/Git availability, and local model feasibility. Record constraints in `PROGRESS.md`.  
+**Learn:** The coding assistant and the application's model are different tools.
+**Do:** Inspect the repository, active shell, Python/Node/Git availability, and local model feasibility. Record constraints in `PROGRESS.md`.
 **Done:** We know which commands work and whether local generation is plausible. Nothing paid, published, or downloaded without permission.
 
 #### T02 — Run the smallest application
 
-**Learn:** A running shell provides a checkpoint before any AI complexity.  
-**Do:** Create a minimal Streamlit page with the project name and an independent-demo notice. Add one smoke test.  
+**Learn:** A running shell provides a checkpoint before any AI complexity.
+**Do:** Create a minimal Streamlit page with the project name and an independent-demo notice. Add one smoke test.
 **Done:** The page opens locally and the test passes.
 
 #### T03 — Register three sources
 
-**Learn:** Provenance lets another person check a claim.  
-**Do:** Capture the three starter references and write short, attributed summaries with IDs and dates.  
+**Learn:** Provenance lets another person check a claim.
+**Do:** Capture the three starter references and write short, attributed summaries with IDs and dates.
 **Done:** Each summary can be traced to a currently checked source. The synthetic dataset is separate.
 
 #### T04 — Write the first three questions
 
-**Learn:** Expected behavior should exist before a model starts answering.  
-**Do:** Write one practitioner question, one patient question, and one unsupported question. Record the required distinctions and evidence.  
+**Learn:** Expected behavior should exist before a model starts answering.
+**Do:** Write one practitioner question, one patient question, and one unsupported question. Record the required distinctions and evidence.
 **Done:** A human can explain what a correct answer must include or why it should abstain.
 
 ### Documentation operations
 
 #### T05 — Validate one content record
 
-**Learn:** Metadata makes routing and governance executable.  
-**Do:** Implement the smallest content schema and validate one record. Add one intentionally invalid fixture.  
+**Learn:** Metadata makes routing and governance executable.
+**Do:** Implement the smallest content schema and validate one record. Add one intentionally invalid fixture.
 **Done:** Valid data passes; missing provenance or invalid review state fails with a useful message.
 
 #### T06 — Reuse one fact
 
-**Learn:** Single-sourcing removes repeated maintenance.  
-**Do:** Store one evidenced fact once and reference it in two demo-authored topics. Render both.  
+**Learn:** Single-sourcing removes repeated maintenance.
+**Do:** Store one evidenced fact once and reference it in two demo-authored topics. Render both.
 **Done:** Changing its version updates both rendered topics without manual duplication.
 
 #### T07 — Detect an affected article
 
-**Learn:** A release impact report explains dependencies, not just text differences.  
-**Do:** Apply one simulated fact change and list dependent articles with a reason, audience, suggested reviewer role, and open question.  
+**Learn:** A release impact report explains dependencies, not just text differences.
+**Do:** Apply one simulated fact change and list dependent articles with a reason, audience, suggested reviewer role, and open question.
 **Done:** All known dependents are flagged; an unrelated article is not.
 
-#### T08 — Write the correction yourself
+#### T08 — Prepare one answerable topic
 
-**Learn:** A strong support topic answers a specific reader question without losing important conditions.  
-**Do:** Rewrite one selected passage as a short standalone answer. Include audience, date, next action, and evidence.  
-**Done:** A before/after comparison explains the editorial choices and remaining SME questions. This is a proposed demo revision, not an approved Fullscript correction.
+**Learn:** Retrieved content must preserve the conditions needed for a correct answer.
+**Do:** Make one source-backed topic usable by the answer pipeline: include audience, relevant dates, next action, source attribution, and demo-authored labelling.
+Retain shared fact references and verify the rendered result.
+**Done:** The topic renders with the supported ordering and transfer guidance, distinguishes recommendations from hard cutoffs, and identifies its evidence.
+No editorial-rationale file, before/after essay, or standalone writing sample is required.
+This remains a proposed demo topic, not a Fullscript-approved correction.
 
 #### T09 — Add the approval boundary
 
-**Learn:** A draft should not become answerable merely because it exists.  
-**Do:** Persist a review decision tied to the content hash; reject unapproved or superseded versions in the answer corpus.  
-**Done:** A draft is excluded, approval admits it, and a later edit invalidates that approval.
+**Learn:** A draft should not become answerable merely because it exists.
+**Do:** Persist a minimal approval record covering the topic and referenced fact values/versions; reject unapproved or superseded versions in the answer corpus.
+This is runtime eligibility data, not a narrative review document.
+**Done:** A draft is excluded, approval admits the exact reviewed version, and a later topic or referenced-fact edit invalidates that approval.
 
 #### T10 — Retrieve the right sources
 
-**Learn:** Retrieval chooses evidence; generation writes from it.  
-**Do:** Filter by approval and applicable metadata, then rank eligible content lexically. Return the top three distinct source IDs with their relevant passages.  
+**Learn:** Retrieval chooses evidence; generation writes from it.
+**Do:** Filter by approval and applicable metadata, then rank eligible content lexically. Return the top three distinct source IDs with their relevant passages.
 **Done:** A known question retrieves its expected source; an ineligible source cannot appear. Empty or conflicting evidence is represented explicitly.
 
 ### Answers and the local model
 
 #### T11 — Answer without a model first
 
-**Learn:** A useful evidence interface can exist before generative AI.  
-**Do:** Show retrieved passages with registered citations and clear extractive-mode labelling. Add clarification/abstention for the defined unsupported cases.  
+**Learn:** A useful evidence interface can exist before generative AI.
+**Do:** Show retrieved passages with registered citations and clear extractive-mode labelling. Add clarification/abstention for the defined unsupported cases.
 **Done:** The app never fabricates a source or pretends that excerpts are newly generated prose.
 
 #### T12 — Freeze the regression set
 
-**Learn:** A stable test set makes before/after comparisons meaningful.  
-**Do:** Expand to 12 cases, including role differences, date boundaries, missing context, draft exclusion, a conflicting source, a forged citation, and an instruction embedded in retrieved text. Version the cases and expected evidence.  
+**Learn:** A stable test set makes before/after comparisons meaningful.
+**Do:** Expand to 12 cases, including role differences, date boundaries, missing context, draft exclusion, a conflicting source, a forged citation, and an instruction embedded in retrieved text. Version the cases and expected evidence.
 **Done:** Expectations are human-reviewed and hidden from the answering pipeline.
 
 #### T13 — Run one local-model smoke test
 
-**Learn:** Model capability and speed are empirical, not assumed.  
-**Do:** With approval, install/download an appropriate local model and test one short grounded response. Record the exact model and settings.  
+**Learn:** Model capability and speed are empirical, not assumed.
+**Do:** With approval, install/download an appropriate local model and test one short grounded response. Record the exact model and settings.
 **Done:** A real response is produced locally, or the extractive fallback is recorded without purchasing a workaround.
 
 #### T14 — Connect LangChain
 
-**Learn:** The chain composes retrieval, context, prompt, model, and parsing.  
-**Do:** Connect our retriever to the local model and return the structured answer contract. Treat retrieved text as data, not instructions.  
+**Learn:** The chain composes retrieval, context, prompt, model, and parsing.
+**Do:** Connect our retriever to the local model and return the structured answer contract. Treat retrieved text as data, not instructions.
 **Done:** One answer is grounded in approved evidence; malformed output, missing evidence, and model unavailability produce explicit states rather than silent fallback.
 
 ### Evaluation and automation
 
 #### T15 — Call the application from Promptfoo
 
-**Learn:** Evaluation must exercise the real pipeline, not a second imitation.  
-**Do:** Add a Python provider that calls our answer function and supplies only runtime inputs. Run one passing and one deliberately failing case. [6]  
+**Learn:** Evaluation must exercise the real pipeline, not a second imitation.
+**Do:** Add a Python provider that calls our answer function and supplies only runtime inputs. Run one passing and one deliberately failing case. [6]
 **Done:** Promptfoo receives real pipeline outputs. Gold answers and expected citations are used only by assertions.
 
 #### T16 — Calculate the metrics
 
-**Learn:** Retrieval, citation validity, and factual support are different measurements.  
-**Do:** Implement the metrics and thresholds in Section 8, with small unit tests for denominators and empty cases. Add a manual citation-support review field.  
+**Learn:** Retrieval, citation validity, and factual support are different measurements.
+**Do:** Implement the metrics and thresholds in Section 8, with small unit tests for denominators and empty cases. Add a manual citation-support review field.
 **Done:** A missing relevant source, forged citation, and unsupported factual claim are not all collapsed into one vague quality score.
 
 #### T17 — Make the quality gate fail and recover
 
-**Learn:** A gate matters only when a regression can stop the check.  
-**Do:** Run validation, retrieval tests, and model-free Promptfoo checks in CI when an approved repository setup permits it; otherwise verify the same gate locally. Inject a regression, observe failure, repair it, and rerun. [9]  
+**Learn:** A gate matters only when a regression can stop the check.
+**Do:** Run validation, retrieval tests, and model-free Promptfoo checks in CI when an approved repository setup permits it; otherwise verify the same gate locally. Inject a regression, observe failure, repair it, and rerun. [9]
 **Done:** Exit codes and reports demonstrate both states. No skipped live-model tests are reported as passes.
 
 #### T18 — Record live-model evidence
 
-**Learn:** Offline CI does not establish live-model answer quality.  
-**Do:** Run all 12 cases locally against the actual model, inspect citations, and save a report with corpus, prompt, test-set, code, and model identifiers.  
+**Learn:** Offline CI does not establish live-model answer quality.
+**Do:** Run all 12 cases locally against the actual model, inspect citations, and save a report with corpus, prompt, test-set, code, and model identifiers.
 **Done:** The report separates automated checks from human review. Missing or stale live-model evidence remains visibly incomplete.
 
-### Demonstration and handoff
+### Interface and reproducibility
 
 #### T19 — Assemble the three views
 
-**Learn:** The interface should expose the editorial story, not hide it.  
-**Do:** Connect the content/change view, answer/evidence view, and evaluation view. Add obvious badges for extractive, live-model, replay, and synthetic modes.  
-**Done:** One scenario can be followed from source change to review to answer to test result without editing code during the demonstration.
+**Learn:** The interface exposes the app's behavior and evidence.
+**Do:** Connect the content/change view, answer/evidence view, and evaluation view.
+Add obvious badges for extractive, live-model, replay, and synthetic modes.
+**Done:** Users can inspect an impact report, manage content eligibility, ask a question, and inspect the answer evidence and test results without editing code.
 
-#### T20 — Add measurement hooks, only if the core works
+#### T21 — Document setup and checks
 
-**Learn:** Product instrumentation is not proof of a business outcome.  
-**Do:** Log synthetic `answer_shown`, `helpful_yes`, `helpful_no`, and `support_link_clicked` events locally. Use case IDs rather than storing personal questions.  
-**Done:** The dashboard displays event counts and labels ticket deflection “not measured.” This task is optional before the interview.
-
-#### T21 — Package the demonstration
-
-**Learn:** Reproducibility makes a small project credible.  
-**Do:** Write a short README covering setup, one command per check, limitations, provenance, and a two-minute walkthrough. Record the working scenario and retain screenshots/reports as a backup.  
-**Done:** The project can be demonstrated without depending on a fresh external API call or public hosting.
-
-#### T22 — Rehearse and freeze scope
-
-**Learn:** The explanation should be about the role, not the libraries.  
-**Do:** Explain the problem, the writing decision, the guardrail, and the evidence. Name what is simulated, unmeasured, or unfinished.  
-**Done:** Nik can explain every claimed capability and offer a concise demo without assuming the recruiter wants a technical walkthrough.
+**Learn:** Setup instructions must reproduce the working application.
+**Do:** Keep a short README with setup, run/test commands, provenance, and current limitations.
+Verify the documented commands on available platforms and label untested platforms honestly.
+**Done:** The app and its checks can be run from the documented instructions without a paid service or public hosting.
+No recording, slide deck, screenshots, or rehearsal is required.
 
 ## 8. Evaluation specification
 
@@ -324,17 +347,11 @@ For free-text answers, deterministic assertions can verify selected dates, struc
 
 GitHub-hosted CI cannot reach a model listening only on Nik's laptop. Do not solve this by exposing the laptop, adding secrets, or purchasing hosting. A future self-hosted runner is out of scope for this homework.
 
-### Business measurement: no invented deflection rate
+### No business-impact claims
 
-This project can implement instrumentation and a measurement plan, not establish actual support-ticket deflection without production users and linked ticket data.
-
-A future controlled comparison could estimate relative ticket-rate reduction as:
-
-```text
-(control contact rate - assisted contact rate) / control contact rate
-```
-
-Define eligible sessions, topic, observation window, and linked ticket outcomes in advance; a zero control rate makes that ratio undefined. Feedback and support-link clicks are useful signals, not equivalent to ticket creation or causal deflection. Report no production percentage for this demo.
+Support-ticket deflection is unmeasured.
+Business instrumentation and measurement-plan documents are outside this build's scope.
+Do not claim production impact from offline tests or synthetic scenarios.
 
 ## 9. Proposed repository layout
 
@@ -348,7 +365,7 @@ README.md
 app.py
 docs_radar/             # schema, rendering, impact, retrieval, answers, metrics
 content/                # demo-authored Markdown topics
-data/                   # source register, facts, releases, reviews
+data/                   # source register, facts, changes, runtime approvals
 evals/                  # fixed cases, Python provider, assertions, two mode configs
 tests/                  # fixtures and unit/integration tests
 reports/                # small, attributable evaluation outputs
@@ -357,51 +374,46 @@ reports/                # small, attributable evaluation outputs
 
 Keep private snapshots, credentials, virtual environments, model weights, and sensitive logs out of Git. Lock working Python and Node dependencies. The README must contain tested commands for the user's actual shell; do not prescribe Bash syntax to a Windows cmd session.
 
-## 10. Interview story and completion checklist
-
-Suggested opening:
-
-> I built an independent proof of concept around a documentation transition. It connects shared facts to affected articles, keeps unreviewed content out of answers, and tests whether changes break retrieval or citations. The public sources are attributed; the injected regression is simulated.
-
-Then show: one dependency alert → one writer-reviewed revision → one cited answer → one failing and repaired check.
+## 10. Functional completion checklist
 
 Before claiming completion, verify:
 
-- [ ] The writing sample is substantial enough to discuss, not just an AI-generated draft.
+- [ ] A supplied fact change flags dependent topics and leaves unrelated topics unflagged.
+- [ ] Questions retrieve eligible evidence and produce cited answers or explicit clarification/abstention.
 - [ ] Approval, source attribution, audience, and date behavior are demonstrated.
 - [ ] The same runtime functions serve the UI and evaluations.
 - [ ] Measured results identify the exact run; unrun checks remain unrun.
 - [ ] Any LangChain/local-model claim is backed by an actual successful execution.
 - [ ] No confidential material, real patient data, fabricated approvals, or invented business impact appears.
-- [ ] The README and recording distinguish real, synthetic, replayed, and planned capabilities.
+- [ ] The app, README, and evaluation outputs distinguish real, synthetic, replayed, and planned capabilities.
 
 ## References
 
 Public sources checked November 1, 2026. Technical details and public articles may change; recheck when implementing or presenting.
 
-[1] Fullscript, **Senior Technical Writer, Support Documentation**.  
+[1] Fullscript, **Senior Technical Writer, Support Documentation**.
 https://jobs.lever.co/fullscript/da672c0a-c946-4a6c-a4ed-97aa7ca9bca0
 
-[2] Fullscript, **Rupa closes January 20, 2027: key dates and next steps**; page marked modified October 27, 2026.  
+[2] Fullscript, **Rupa closes January 20, 2027: key dates and next steps**; page marked modified October 27, 2026.
 https://support.fullscript.com/articles/rupa-closes-january-20-2027-key-dates-and-next-steps
 
-[3] Fullscript, **What it means to be view-only on Rupa**; page marked modified October 30, 2026.  
+[3] Fullscript, **What it means to be view-only on Rupa**; page marked modified October 30, 2026.
 https://support.fullscript.com/articles/what-it-means-to-be-view-only-on-rupa
 
-[4] Fullscript, **Rupa Health Acquisition FAQs**; page marked modified July 17, 2026.  
+[4] Fullscript, **Rupa Health Acquisition FAQs**; page marked modified July 17, 2026.
 https://support.fullscript.com/articles/rupa-health-acquisition-faqs
 
-[5] LangChain, **ChatOllama integration**.  
+[5] LangChain, **ChatOllama integration**.
 https://docs.langchain.com/oss/python/integrations/chat/ollama
 
-[6] Promptfoo, **Python provider**.  
+[6] Promptfoo, **Python provider**.
 https://www.promptfoo.dev/docs/providers/python/
 
-[7] Promptfoo, **Python assertions**.  
+[7] Promptfoo, **Python assertions**.
 https://www.promptfoo.dev/docs/configuration/expected-outputs/python/
 
-[8] GitHub, **GitHub Actions billing**.  
+[8] GitHub, **GitHub Actions billing**.
 https://docs.github.com/en/billing/concepts/product-billing/github-actions
 
-[9] Promptfoo, **CI/CD integration**.  
+[9] Promptfoo, **CI/CD integration**.
 https://www.promptfoo.dev/docs/integrations/ci-cd/

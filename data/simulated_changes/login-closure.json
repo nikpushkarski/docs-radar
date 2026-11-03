@@ -1,0 +1,10 @@
+{
+  "id": "synthetic-login-closure-change",
+  "evidence_type": "synthetic",
+  "description": "Fictional date change for testing dependency detection; not a Fullscript announcement.",
+  "fact_id": "rupa-login-closure-date",
+  "old_value": "2027-01-20",
+  "new_value": "2099-01-01",
+  "old_version": 1,
+  "new_version": 2
+}
