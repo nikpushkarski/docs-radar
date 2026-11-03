@@ -23,6 +23,12 @@ The default report and raw outputs go to Git-ignored `reports/local/`.
 Public-evidence and synthetic-adversarial metrics are separated.
 Human review remains separate from all deterministic checks.
 
+`live-model-attempt-v2.json` is an incomplete live-path attempt, not model performance evidence.
+All 12 cases traversed the actual pipeline, but no model call completed: optional dependencies are absent, every `model_called` is false, and model digests are empty.
+Five deterministic pre-generation behaviors passed; none is a live-generation pass.
+After consenting to local installation and starting the project server, rerun `python -m evals.run --mode live-model --model <installed-tag>` on either OS.
+Record human support review separately, and rerun after code, corpus, prompt or model changes.
+
 To record human citation-support review, inspect `reports/local/outputs.json` and provide a local JSON file to `--reviews`.
 Each case entry needs its exact `output_hash` from the report, `reviewer`, `reviewed_on`, and `claims`, mapping zero-based cited claim indices to `true` (supported) or `false` (unsupported).
 Changed outputs invalidate those decisions.
