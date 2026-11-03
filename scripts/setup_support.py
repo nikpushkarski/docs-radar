@@ -20,6 +20,8 @@ import urllib.request
 import venv
 import zipfile
 
+from docs_radar.model_policy import CONTEXT_TOKENS, MAX_MODEL_BYTES
+
 GIB = 1024 ** 3
 ROOT = Path(__file__).resolve().parents[1]
 BASE_URL = "http://127.0.0.1:11435"
@@ -59,7 +61,8 @@ class Model:
 
 
 # Apache 2.0 licences and manifest hashes verified against registry.ollama.ai.
-# Footprints include a conservative allowance for a 4096-token context, not a benchmark.
+# Conservative footprints include context/runtime overhead; not a performance benchmark.
+# Never recommend larger models as a workaround for missing evidence or weak prose.
 MODELS = (
     Model("qwen3:0.6b", 522653767, 2.0,
           "7df6b6e09427a769808717c0a93cadc4ae99ed4eb8bf5ca557c90846becea435"),
@@ -67,8 +70,6 @@ MODELS = (
           "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7"),
     Model("qwen3:4b", 2497293931, 4.5,
           "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7"),
-    Model("qwen3:8b", 5225388164, 8.0,
-          "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41"),
 )
 
 
@@ -237,7 +238,10 @@ def inspect_models(directory):
             split = bool(re.search(r"-\d{5}-of-\d{5}\.gguf$", path.name, re.IGNORECASE))
             valid = valid and not split and not path.is_symlink()
             note = "GGUF header found; compatibility not yet tested" if valid else "Invalid header, symlink or split GGUF; use a complete single-file model"
-            found.append(LocalModel(path.name, path, "gguf", path.stat().st_size, valid, note))
+            size = path.stat().st_size
+            if size > MAX_MODEL_BYTES:
+                valid, note = False, "Above the 3 GiB lightweight limit; left on disk, not offered"
+            found.append(LocalModel(path.name, path, "gguf", size, valid, note))
         except OSError as error:
             found.append(LocalModel(path.name, path, "gguf", 0, False, str(error)))
     manifest_root = directory / "ollama" / "manifests"
@@ -262,7 +266,9 @@ def inspect_models(directory):
                 if blob.is_symlink() or blob.stat().st_size != record["size"]:
                     raise ValueError("Missing or incomplete blob")
             size = sum(record["size"] for record in records)
-            found.append(LocalModel(name, path, "ollama", size, True, "Local cache complete; generation not yet tested"))
+            usable = size <= MAX_MODEL_BYTES
+            note = "Local cache complete; compatibility not yet tested" if usable else "Above the 3 GiB lightweight limit; left on disk, not offered"
+            found.append(LocalModel(name, path, "ollama", size, usable, note))
         except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
             found.append(LocalModel(name, path, "ollama", 0, False, "Incomplete cache: " + str(error)))
     for suffix in ("*.safetensors", "*.bin", "*.ggml", "*.partial"):
@@ -310,6 +316,20 @@ def extract_archive(archive, destination):
             bundle.extractall(destination, filter="data")
 
 
+def promote_runtime(stage, destination):
+    """Allow a bounded retry when Windows scanners briefly hold extracted files."""
+    for attempt in range(5):
+        if destination.exists():
+            raise SetupError("Runtime destination appeared during installation; refusing to overwrite it.")
+        try:
+            stage.rename(destination)
+            return
+        except PermissionError as error:
+            if getattr(error, "winerror", None) not in (5, 32) or attempt == 4:
+                raise
+            time.sleep(0.1 * 2 ** attempt)
+
+
 def install_runtime(hardware, ui):
     existing = cached_runtime(hardware)
     if existing:
@@ -336,7 +356,7 @@ def install_runtime(hardware, ui):
             if hardware.system == "Darwin":
                 binary.chmod(binary.stat().st_mode | 0o700)
             (stage / "docs-radar-install.json").write_text(json.dumps({"archive_sha256": digest}), encoding="utf-8")
-            stage.rename(destination)
+            promote_runtime(stage, destination)
     return runtime_binary(destination, hardware.system)
 
 
@@ -388,7 +408,8 @@ def install_python(root, ui):
 def model_environment(root):
     return {**os.environ, "OLLAMA_MODELS": str(root / "models" / "ollama"),
             "OLLAMA_HOST": BASE_URL.removeprefix("http://"), "OLLAMA_NO_CLOUD": "1",
-            "OLLAMA_CONTEXT_LENGTH": "4096", "OLLAMA_NUM_PARALLEL": "1"}
+            "OLLAMA_CONTEXT_LENGTH": str(CONTEXT_TOKENS), "OLLAMA_NUM_PARALLEL": "1",
+            "OLLAMA_MAX_LOADED_MODELS": "1", "OLLAMA_MAX_QUEUE": "1", "OLLAMA_KEEP_ALIVE": "0"}
 
 
 def local_json(path):
@@ -454,7 +475,7 @@ def prepare_model(binary, root, selection, ui):
             source = selection.path.resolve().as_posix()
             if any(ord(char) < 32 for char in source):
                 raise SetupError("Control characters in a GGUF filename are not supported.")
-            modelfile.write_text("FROM " + json.dumps(source, ensure_ascii=False) + "\nPARAMETER num_ctx 4096\n", encoding="utf-8")
+            modelfile.write_text("FROM " + json.dumps(source, ensure_ascii=False) + f"\nPARAMETER num_ctx {CONTEXT_TOKENS}\n", encoding="utf-8")
             run_command([binary, "create", tag, "-f", modelfile], ui, "Importing existing GGUF (no model download)", env=env)
         expected = None
     else:

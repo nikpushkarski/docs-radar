@@ -1,5 +1,6 @@
 """Local gate; does not provision packages, cloud CI or hosted model services."""
 import argparse
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -10,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run_step(name, arguments):
-    process = subprocess.run([sys.executable, *arguments], cwd=ROOT, capture_output=True, text=True, check=False)
+    process = subprocess.run([sys.executable, *arguments], cwd=ROOT, capture_output=True,
+        text=True, encoding="utf-8", check=False,
+        env={**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"})
     print(f"{name}: exit {process.returncode}")
     print(process.stdout)
     if process.stderr:

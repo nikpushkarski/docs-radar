@@ -17,13 +17,14 @@ def main():
     if args.suite and args.negative_control:
         parser.error("Choose either the suite or the negative control")
     node = shutil.which("node")
-    cli = ROOT / "evals/node_modules/promptfoo/dist/src/main.js"
+    cli = ROOT / "evals/node_modules/promptfoo/dist/src/entrypoint.js"
     if not node or not cli.is_file():
-        print("Promptfoo not installed; no download attempted. Review evals/package.json, then explicitly install with npm install --prefix evals.")
+        print("Promptfoo not installed; no download attempted. Review evals/package.json, then explicitly install the lock with npm ci --prefix evals.")
         return 2
     name = "promptfooconfig.json" if args.suite else "promptfoo-negative.json" if args.negative_control else "promptfoo-smoke.json"
     env = dict(os.environ, PROMPTFOO_DISABLE_TELEMETRY="1", PROMPTFOO_DISABLE_UPDATE="1",
                PROMPTFOO_PYTHON=sys.executable, PROMPTFOO_DISABLE_REMOTE_GENERATION="true",
+               PYTHONUTF8="1", PYTHONIOENCODING="utf-8",
                PROMPTFOO_CONFIG_DIR=str(ROOT / "evals/.promptfoo"))
     # Promptfoo children must resolve the shared package from any worker cwd.
     env["PYTHONPATH"] = str(ROOT) + os.pathsep + env.get("PYTHONPATH", "")

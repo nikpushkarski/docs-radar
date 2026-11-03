@@ -23,7 +23,8 @@ def code_hash():
     for folder in ("docs_radar", "evals", "scripts"):
         for path in sorted((ROOT / folder).glob("*.py")):
             files[path.relative_to(ROOT).as_posix()] = path.read_text(encoding="utf-8")
-    for name in ("scripts/requirements.txt", "scripts/requirements-model.txt", "evals/package.json"):
+    for name in ("scripts/requirements.txt", "scripts/requirements-model.txt",
+                 "scripts/constraints-python313.txt", "evals/package.json", "evals/package-lock.json"):
         files[name] = (ROOT / name).read_text(encoding="utf-8")
     return digest(files)
 
@@ -71,19 +72,23 @@ def evaluate(mode="extractive", model=None, reviews=None):
         "schema_version": 1, "created_at": datetime.now(timezone.utc).isoformat(),
         "provenance": {**git_provenance(), "code_hash": code_hash(),
             "test_set_version": suite["version"], "test_set_hash": manifest["bundle_sha256"],
-            "mode": mode, "model_id": model, "prompt_hash": PROMPT_HASH if mode == "live-model" else None,
+            "mode": mode, "answer_style": "model_selected_excerpts" if mode == "live-model" else "extractive_excerpts",
+            "model_id": model, "prompt_hash": PROMPT_HASH if mode == "live-model" else None,
             "corpus_hashes": sorted({r["run"]["corpus_hash"] for r in rows if r["run"]["corpus_hash"]}),
             "model_digests": sorted({r["run"]["model_digest"] for r in rows if r["run"].get("model_digest")})},
         "summary": summarize(rows),
         "lanes": {lane: summarize([r for r in rows if r["lane"] == lane]) for lane in ("public_evidence", "synthetic_adversarial")},
         "cases": rows,
-        "limitations": ["Deterministic checks do not establish semantic support or general injection resistance.",
+        "limitations": ["Current live-model output is model-selected excerpts, not generated prose.",
+            "Deterministic checks do not establish semantic support or general injection resistance.",
             "Synthetic fixture approvals do not approve the real corpus.",
             "Human review is incomplete unless explicitly recorded against each output hash.",
             "A failing baseline records observed failures; it does not waive thresholds."]}
     if mode == "live-model":
+        report["successful_model_responses"] = sum(
+            bool(o["run"].get("model_called")) and o["status"] != "error" for o in outputs.values())
         report["live_evidence_complete"] = bool(report["provenance"]["model_digests"]) and all(
-            o["reason"] not in ("model_unavailable", "malformed_model_output") for o in outputs.values())
+            o["status"] != "error" for o in outputs.values())
     return report, outputs
 
 

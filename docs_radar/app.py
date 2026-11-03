@@ -21,7 +21,10 @@ ROOT = Path(__file__).resolve().parents[1]
 def show_answer(result):
     st.caption(f"Status: {result['status']} | Mode: {result['run']['mode']} | Reference date: {result['run']['reference_date']}")
     if result["status"] == "answered":
-        st.subheader("Relevant excerpts" if result["run"]["mode"] == "extractive" else "Generated answer — verify support")
+        selected = result["run"].get("answer_style") == "model_selected_excerpts"
+        st.subheader("Model-selected excerpts" if selected else "Relevant excerpts" if result["run"]["mode"] == "extractive" else "Historical generated answer — verify support")
+        if selected:
+            st.caption("The local model selected evidence; Python preserved its wording. This is not generated prose.")
         st.caption("Retrieved matches and valid citations do not prove that every part of your question is answered.")
     elif result["status"] == "error":
         st.error(result["answer_text"])
@@ -60,7 +63,8 @@ def ask_view():
         question = st.text_input("Question")
         audience = st.selectbox("Audience", ["Choose audience", "Providers", "Patients"])
         reference_date = st.date_input("Reference date", value=date.today())
-        mode_label = st.radio("Answer mode", ["Extractive", "Live-model (optional, unverified)"], horizontal=True)
+        mode_label = st.radio("Answer mode", ["Extractive", "Model-selected excerpts (optional)"], horizontal=True)
+        st.caption("No model is needed by default. Optional selection: installed 4B-class model at most, one short call, immediate unload; not a speed guarantee on your device.")
         # Keep the model tag explicit; never select a hosted fallback or download here.
         model = st.text_input("Installed local model tag", placeholder="For example qwen3:4b")
         submitted = st.form_submit_button("Find evidence")
@@ -150,7 +154,7 @@ def content_view():
 
 def quality_view():
     st.subheader("Quality and provenance")
-    st.caption("Extractive = fresh excerpt pipeline; live-model = requested generation; replay = historical output inspection, not a fresh call.")
+    st.caption("Extractive = no model; live-model = requested local model call (current output: selected excerpts, not generated prose); replay = historical inspection, not a fresh call.")
     st.warning("Frozen evaluations use isolated synthetic approvals. Their scores do not approve the real application corpus.")
     reports = available_reports(ROOT)
     if not reports:

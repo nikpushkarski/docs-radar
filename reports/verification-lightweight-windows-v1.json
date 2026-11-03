@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-03T23:40:33.525219+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.17",
+  "provenance": {
+    "commit": "2355b5e7367dbefb951adaaf47bb8ad17ac16da4",
+    "dirty": true,
+    "code_hash": "190d3fb96357197692070e37236c0af1e853cb62affae7b998da5e3fca8d7ae4"
+  },
+  "unit_tests": {
+    "status": "passed",
+    "count": 222,
+    "command": "python -m unittest discover -s tests -q"
+  },
+  "dependency_check": "pip check passed; 59 Windows / 58 macOS-marker dependencies pinned; marker analysis is not native macOS validation",
+  "promptfoo": {
+    "version": "0.125.1",
+    "smoke_exit": 0,
+    "negative_control_exit": 100,
+    "suite_exit": 100,
+    "suite_passes": 10,
+    "suite_cases": 12,
+    "failures": [
+      "Q02",
+      "Q05"
+    ],
+    "lock": "evals/package-lock.json",
+    "clean_npm_ci": "not_run; current installation contains extraneous packages"
+  },
+  "gate": {
+    "steps": [
+      {
+        "name": "unit_tests",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "name": "frozen_integrity",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "name": "quality",
+        "exit_code": 1,
+        "status": "failed"
+      },
+      {
+        "name": "promptfoo",
+        "exit_code": 100,
+        "status": "failed"
+      }
+    ],
+    "pass": false,
+    "live_model": "not_run",
+    "human_review": "not_run",
+    "hosted_ci": "not_run"
+  },
+  "gate_exit": 1,
+  "isolated_control": {
+    "scope": "Isolated Q01 configuration control; not a full-suite pass",
+    "provenance": {
+      "commit": "2355b5e7367dbefb951adaaf47bb8ad17ac16da4",
+      "dirty": true,
+      "code_hash": "190d3fb96357197692070e37236c0af1e853cb62affae7b998da5e3fca8d7ae4"
+    },
+    "steps": [
+      {
+        "name": "clean",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "name": "injected",
+        "exit_code": 1,
+        "status": "failed"
+      },
+      {
+        "name": "repaired",
+        "exit_code": 0,
+        "status": "passed"
+      }
+    ],
+    "demonstration_pass": true
+  },
+  "model_selection": {
+    "model": "qwen3:4b",
+    "model_digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "settings": {
+      "temperature": 0,
+      "seed": 0,
+      "num_ctx": 2048,
+      "num_predict": 64,
+      "num_thread": 2,
+      "reasoning": false,
+      "keep_alive": 0
+    },
+    "actual_calls": 6,
+    "timings_seconds": [
+      3.2377,
+      2.3773,
+      2.3959,
+      2.3888,
+      2.3715,
+      2.4065
+    ],
+    "resident_models_after_suite": [],
+    "model_server_stopped": true,
+    "real_approved_corpus_smoke": {
+      "status": "answered",
+      "elapsed_seconds": 3.2752402999904007,
+      "output_hash": "4aac8f81eac761b34a41adf1bcc1ad3f90299a9da9fcac9144ba7e0462f7a60b",
+      "corpus_hash": "efe2e7bbc982e987169d0ddbc87ed3a7432159fc7ed10b35d438aab05148e5fa"
+    }
+  },
+  "downloads_this_change": {
+    "model_payloads": 0,
+    "runtime_payloads": 0,
+    "package_payloads": 0
+  },
+  "larger_model": "Previously downloaded 8B weights remain on disk; not configured or executed, excluded by resource policy",
+  "human_review": "not_run; two content/drafts candidates need explicit content and versioning approval",
+  "frozen_v2": "unchanged, including real approvals and original baseline",
+  "browser_smoke": "not_rerun for this change; current Streamlit AppTest passed, historical Edge smoke retained",
+  "macos_runtime": "not_run",
+  "hosted_ci": "not_run",
+  "clean_checkout_install": "not_run"
+}

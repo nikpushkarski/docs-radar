@@ -36,13 +36,13 @@ def registered_citation(passage, sources):
 
 
 def answer(question, audience=None, reference_date=None, *, workspace=None, mode="extractive", model=None):
-    """Shared UI/evaluation entry point; generation is explicit and optional."""
+    """Shared UI/evaluation entry point; model selection is explicit and optional."""
     if mode not in ("extractive", "live-model"):
         raise ValueError("Mode must be extractive or live-model; replay is not a fresh answer")
     result = extractive_answer(question, audience, reference_date, workspace=workspace)
     if mode == "live-model":
-        from docs_radar.generation import generate_answer
-        return generate_answer(result, question, audience, model)
+        from docs_radar.generation import model_selected_answer
+        return model_selected_answer(result, question, audience, model)
     return result
 
 

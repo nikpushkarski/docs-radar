@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class RepositoryLayoutTest(unittest.TestCase):
     def run_python(self, *arguments, cwd=ROOT):
         return subprocess.run(
-            [sys.executable, *arguments], cwd=cwd, stdin=subprocess.DEVNULL,
+            [sys.executable, "-X", "utf8", *arguments], cwd=cwd, stdin=subprocess.DEVNULL,
             capture_output=True, text=True, encoding="utf-8", timeout=30,
         )
 

@@ -4,7 +4,9 @@
 **Prepared:** November 1, 2026
 **Target:** A working local app with change-impact detection and evidence-grounded answers.
 **Status:** Implemented through the final documentation step where local prerequisites permit; not all acceptance checks are complete.
-T13 uses the allowed extractive fallback; T14/T15/T18 lack live-model or installed Promptfoo evidence, and T17's full quality gate remains red/blocked.
+T13/T14 have real local execution evidence and T15 has installed Promptfoo checks.
+At Nik's request, the optional model now selects excerpts instead of generating guidance; no larger model is required.
+T17's full quality gate remains red on Q02/Q05 and recall, and T18 human support review is incomplete.
 See `PROGRESS.md` and `reports/README.md` for actual checks and limitations.
 
 **Companion:** `AGENTS.md` governs how Codex teaches and implements this plan.
@@ -92,7 +94,12 @@ Evaluation reports remain in scope because they record actual pipeline results, 
 Also exclude hosting, visual polish, extra articles before the core works, semantic embeddings, and automated claim extraction.
 Do not add authentication, multi-agent orchestration, a full CMS, OAuth, a vector database, or live patient data.
 
-**Hardware fallback:** If a local model is impractical, ship an explicitly labelled extractive evidence assistant. Continue testing retrieval, governance, citations, and CI. Do not describe extractive output, mocks, or recordings as live generative AI. A working LangChain-to-model integration remains an unfinished feature until actually run.
+**Hardware fallback:** The model-free extractive evidence assistant is the default, including in setup.
+Continue testing retrieval, governance, citations, and CI without a GPU or model.
+Nik rejected a heavier-model workaround: optional inference is capped at 4B class / 3 GiB weights and performs only source-group selection.
+Python renders the complete eligible excerpts; the UI explicitly labels them model-selected, not generated prose.
+One short call, 2,048 context tokens, 64 output tokens, two CPU threads, memory-headroom checks, and immediate unloading limit resource use without guaranteeing comfort on every machine.
+Do not describe extractive output, mocks, or recordings as live generative AI.
 
 ## 5. Architecture and technology
 
@@ -123,7 +130,7 @@ Question + audience + date ──> eligible-content filter ──> retrieval
 | Validation | Python tests and a small explicit schema |
 | Retrieval | Local lexical ranking, initially TF-IDF; no embedding API |
 | Orchestration | LangChain components around our actual retrieval and answer functions |
-| Generative answers | `ChatOllama` through `langchain-ollama`; local model selected after a hardware check [5] |
+| Optional model-selected excerpts | `ChatOllama` through `langchain-ollama` selects eligible source groups; Python preserves excerpt wording and citations [5] |
 | Evaluations | Promptfoo calling the same Python pipeline through a custom provider; custom Python assertions [6][7] |
 | Automation | GitHub Actions on a standard Linux runner; model-free checks by default [8] |
 
@@ -149,8 +156,10 @@ Document both setup paths, but report macOS as unverified until its installation
 ### Cost safeguards
 
 Local generation avoids a metered cloud-model dependency, but performance depends on the machine.
-The initial T13 candidate is qwen3:4b; it has not been installed or run.
-An optional adapter exists, but T13 is recorded as extractive fallback and the T18 live-path attempt contains zero successful model calls.
+Ollama 0.40.14 and pinned qwen3:4b are installed and have produced actual local responses on Windows.
+The small-model selection adapter completes six model calls in the frozen suite; six other cases stop at deterministic gates.
+The prior zero-call live attempt remains a historical report, not current installation status.
+The earlier 8B download is unused, excluded by the resource policy, and not a required dependency.
 Check RAM, available GPU memory, disk space, model download size, and licence before downloading, and record the exact runtime/model identifiers after installation.
 
 Standard GitHub-hosted runners in public repositories are free; larger runners are not. Private-repository compute and storage allowances need checking. [8] Publishing a repository is a separate decision requiring Nik's approval. Until then, run the same checks locally; do not change repository visibility to obtain free compute.
@@ -209,18 +218,20 @@ This status records execution, not changed acceptance criteria.
 | Tasks | Actual status |
 | --- | --- |
 | T01–T12 | Complete at previously recorded scope |
-| T13 | Complete via explicit extractive fallback; no model smoke response |
-| T14 | Optional LangChain adapter and offline contract tests implemented; successful live execution remains incomplete |
-| T15 | Provider, assertions and pinned Promptfoo configuration implemented; CLI execution and transitive lock remain incomplete |
+| T13 | Real Windows Ollama/4B smoke recorded at 2355b5e; extractive mode remains the default |
+| T14 | Complete for the explicitly narrowed model-selection path: real approved-corpus call, strict parsing, intact excerpts, bounded resources, explicit errors |
+| T15 | Actual Promptfoo smoke passed and negative control failed as intended; installed version and transitive lock recorded |
 | T16 | Metrics and immutable observed baseline implemented; human citation accuracy remains unmeasured |
-| T17 | Local gate and isolated fail/recover subprocess control implemented; full suite still fails Q02/Q05 and Recall@3, Promptfoo step blocked |
-| T18 | Incomplete live-path report recorded; zero successful model calls and no human support review |
+| T17 | Local gate and isolated fail/recover control implemented; full suite and actual Promptfoo still fail Q02/Q05; Recall@3 remains 6/7 |
+| T18 | All 12 cases executed through the selection path; six real calls, 10/12 deterministic passes, no human support review or full quality pass |
 | T19 | Three functional views implemented; Windows AppTest and real Edge smoke checked |
-| T21 | Windows/macOS instructions and reproducible check commands documented; macOS runtime, clean native installation and optional-package locks remain unverified |
+| T21 | Windows/macOS instructions updated; Python 3.13 constraints and npm lock recorded; macOS runtime and clean-checkout installation remain unverified |
 
 The original frozen v2 corpus and expectations are unchanged.
 Runtime fixes improved Q07/Q12 without editing the benchmark; Q02/Q05 need reviewed corpus work before the full quality gate can pass.
-No passing live-model, hosted-CI, or human-review claim is made.
+`content/drafts/` contains proposed patient-payment and provider-boundary corrections, excluded from real answers pending Nik's review.
+Promoting them and creating a new evaluation-corpus version require explicit approval; frozen v2 and its baseline remain unchanged.
+No full-suite live-model quality pass, hosted-CI, or human-review claim is made.
 
 ### Foundation and evidence
 
@@ -321,7 +332,9 @@ Routing fixtures alone do not establish answer quality or live verification.
 #### T14 — Connect LangChain
 
 **Learn:** The chain composes retrieval, context, prompt, model, and parsing.
-**Do:** Connect our retriever to the local model and return the structured answer contract. Treat retrieved text as data, not instructions.
+**Do:** Connect our retriever to the local model and return the structured answer contract.
+Under the lightweight design, the model returns source-group indices and Python renders their full excerpts, not generated guidance.
+Treat retrieved text as data, not instructions; one bounded selection call replaces prose-generation repair loops.
 **Done:** One answer is grounded in approved evidence; malformed output, missing evidence, and model unavailability produce explicit states rather than silent fallback.
 
 ### Evaluation and automation
@@ -442,7 +455,7 @@ Before claiming completion, verify:
 - [x] Approval, source attribution, audience, and date behavior are demonstrated.
 - [x] The same runtime functions serve the UI and evaluations.
 - [x] Measured results identify the exact run; unrun checks remain unrun.
-- [ ] LangChain/local-model acceptance is backed by an actual successful execution — still incomplete; optional adapter only.
+- [x] LangChain/local-model integration is backed by actual successful selection calls — excerpt rendering, not free-form generation; full quality and human review remain incomplete.
 - [x] No confidential material, real patient data, fabricated approvals, or invented business impact appears.
 - [x] The app, README, and evaluation outputs distinguish real, synthetic, replayed, and unverified capabilities.
 

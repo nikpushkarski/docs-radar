@@ -12,6 +12,7 @@ import tarfile
 import tempfile
 import zipfile
 
+from docs_radar.model_policy import CONTEXT_TOKENS
 from scripts.setup_support import (
     ASSETS, BASE_URL, GIB, OLLAMA_VERSION, ROOT, LocalModel, Model, SetupError,
     cached_runtime, check_space, detect_hardware, inspect_models, install_python,
@@ -34,22 +35,23 @@ def choose_model(ui, root, hardware):
         ui.page("Existing models", f"Found in {root / 'models'}:")
         ui.table(("Model", "Format", "Status"), [(item.name, item.kind, item.note) for item in found])
         usable = [item for item in found if item.usable]
-        options = ["Continue with already existing " + item.name for item in usable]
-        options += ["Analyze hardware to suggest a new download", "Install extractive app only (no model)"]
-        choice = ui.choose("Use an existing model or analyze hardware?", options)
-        if choice < len(usable):
-            return usable[choice]
-        if choice == len(usable) + 1:
+        options = ["Install extractive app only (no model)"]
+        options += ["Continue with already existing " + item.name for item in usable]
+        options += ["Analyze hardware to suggest a new download"]
+        choice = ui.choose("Extractive by default; optional model setup?", options)
+        if choice == 0:
             return None
+        if choice <= len(usable):
+            return usable[choice - 1]
     recommendation = recommend_model(hardware, runtime_missing=not bool(cached_runtime(hardware)))
     ui.page("Hardware analysis", hardware_summary(hardware), hardware.notes)
     if recommendation:
-        ui.text(f"Recommended: {recommendation.tag} (Apache 2.0), with a 4096-token context. "
-                "This is a conservative memory/disk heuristic, not a performance or answer-quality benchmark. "
-                "CPU recommendations are capped at 4B for latency; smaller models may give weaker answers.")
-        selection = ui.choose("Choose setup mode", ["Continue with " + recommendation.tag,
-                                                   "Install extractive app only (no model)"])
-        return recommendation if selection == 0 else None
+        ui.text(f"Optional: {recommendation.tag} (Apache 2.0), with a {CONTEXT_TOKENS}-token context. "
+                "All recommendations stop at 4B. This memory/disk heuristic is not a performance guarantee. "
+                "The default extractive app needs no model or GPU; optional selection returns excerpts, not generated prose.")
+        selection = ui.choose("Choose setup mode", ["Install extractive app only (no model)",
+                                                   "Continue with " + recommendation.tag])
+        return recommendation if selection == 1 else None
     ui.text("No safe automatic model recommendation: OS support, measured memory or available disk is insufficient/unknown. "
             "You can still install the Python extractive app; no model or paid fallback is required.")
     ui.choose("Continue?", ["Install extractive app only (no model)"])
@@ -124,7 +126,7 @@ def setup(ui, root=ROOT):
         record = {
             "schema_version": 1, "platform": hardware.system,
             "ollama_version": OLLAMA_VERSION, "ollama_binary": str(binary),
-            "model": tag, "model_digest": digest, "context_tokens": 4096,
+            "model": tag, "model_digest": digest, "context_tokens": CONTEXT_TOKENS,
             "base_url": BASE_URL, "model_directory": str(root / "models" / "ollama"),
             "generation_tested": False,
         }
@@ -133,10 +135,10 @@ def setup(ui, root=ROOT):
         temporary.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
         temporary.replace(target)
     ui.page("Installation complete", f"Python environment: {python}",
-            "The Streamlit app still displays extractive evidence; local generation is not integrated yet.",
+            "The app defaults to extractive evidence; optional model selection requires scripts/requirements-model.txt.",
             "Activate .venv and run from the repository: python -m streamlit run docs_radar/app.py")
     if selection:
-        ui.text(f"Model installed: {tag}\nDigest: {digest}\nGeneration has NOT been smoke-tested. "
+        ui.text(f"Model installed: {tag}\nDigest: {digest}\nModel selection has NOT been smoke-tested. "
                 "Start its local-only server with: python -m scripts.setup_local --serve\n"
                 "The setup server has been stopped; no background service was installed.")
     ui.draw()
@@ -153,9 +155,9 @@ def serve(ui, root=ROOT):
     selected = next((item for item in models if item.kind == "ollama" and item.usable and item.name == record.get("model")), None)
     if not selected or hashlib.sha256(selected.path.read_bytes()).hexdigest() != record.get("model_digest"):
         raise SetupError("The configured local model is missing, incomplete or changed. Rerun setup to select or import a model.")
-    ui.page("Project model server", f"Model: {record['model']}\nLocal API: {BASE_URL}\nCloud disabled; context: 4096 tokens.",
-            "This does not enable generated answers in the current Streamlit app. "
-            "Keep this terminal open for local API experiments; stopping it terminates only this server.")
+    ui.page("Project model server", f"Model: {record['model']}\nLocal API: {BASE_URL}\nCloud disabled; context: {CONTEXT_TOKENS} tokens; idle models unload immediately.",
+            "Install scripts/requirements-model.txt, then select Model-selected excerpts and this tag in the app. "
+            "Keep this terminal open; stopping it terminates only this server.")
     with model_server(binary, root, ui):
         ui.choose("Server ready", ["Stop the project model server and exit"])
     ui.text("Project model server stopped.")

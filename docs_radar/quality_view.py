@@ -21,7 +21,7 @@ def report_freshness(report):
         reasons.append("Evaluation fixture corpus differs")
     if provenance.get("mode") == "live-model":
         if provenance.get("prompt_hash") != PROMPT_HASH:
-            reasons.append("Generation prompt/settings differ")
+            reasons.append("Model prompt/settings differ")
         if not report.get("live_evidence_complete"):
             reasons.append("No complete live-model evidence")
         reasons.append("Current installed model digest has not been verified by this read-only view")

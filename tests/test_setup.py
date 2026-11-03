@@ -80,8 +80,9 @@ class HardwareTests(unittest.TestCase):
     def test_current_windows_class_uses_4b_not_8b(self):
         self.assertEqual(support.recommend_model(WINDOWS).tag, "qwen3:4b")
 
-    def test_larger_verified_gpu_can_select_8b(self):
-        self.assertEqual(support.recommend_model(replace(WINDOWS, free_vram=12 * support.GIB)).tag, "qwen3:8b")
+    def test_larger_gpu_does_not_raise_model_ceiling(self):
+        self.assertEqual(support.recommend_model(replace(WINDOWS, free_vram=24 * support.GIB)).tag, "qwen3:4b")
+        self.assertTrue(all(model.download_bytes <= support.MAX_MODEL_BYTES for model in support.MODELS))
 
     def test_cpu_caps_model_size(self):
         self.assertEqual(support.recommend_model(replace(WINDOWS, free_vram=0)).tag, "qwen3:4b")
@@ -154,6 +155,16 @@ class ModelDiscoveryTests(unittest.TestCase):
         self.assertEqual(len(found), 1)
         self.assertTrue(found[0].usable)
         self.assertIn("not yet tested", found[0].note)
+
+    def test_oversized_gguf_and_cache_are_listed_but_not_offered_or_deleted(self):
+        path = gguf(self.root / "too-large.gguf")
+        cached = manifest(self.root)
+        with patch.object(support, "MAX_MODEL_BYTES", 1):
+            found = support.inspect_models(self.root)
+        self.assertEqual(len(found), 2)
+        self.assertTrue(all(not item.usable and "lightweight limit" in item.note for item in found))
+        self.assertTrue(path.exists())
+        self.assertTrue(cached.exists())
 
     def test_partial_bad_header_split_and_unsupported_files_are_not_reused(self):
         (self.root / "broken.gguf").write_bytes(b"GGUF")
@@ -308,7 +319,7 @@ class ConsentFlowTests(unittest.TestCase):
         self.operations["verify_model_reference"].assert_not_called()
 
     def test_plan_and_consent_precede_every_install_step(self):
-        ui = FakeUI([0])
+        ui = FakeUI([1])
         def verify(model):
             self.assertIn(("confirm", True), ui.events)
             self.assertTrue(any(event[0] == "table" for event in ui.events))
@@ -325,7 +336,7 @@ class ConsentFlowTests(unittest.TestCase):
 
     def test_existing_gguf_can_be_selected_without_new_model_download(self):
         path = gguf(self.root / "models" / "existing.gguf")
-        ui = FakeUI([0])
+        ui = FakeUI([1])
         with patch.object(app, "recommend_model") as recommend:
             self.assertTrue(app.setup(ui, self.root))
         recommend.assert_not_called()
@@ -337,21 +348,29 @@ class ConsentFlowTests(unittest.TestCase):
 
     def test_existing_cache_can_be_reused(self):
         manifest(self.root / "models")
-        app.setup(FakeUI([0]), self.root)
+        app.setup(FakeUI([1]), self.root)
         self.operations["verify_model_reference"].assert_not_called()
         self.assertEqual(self.operations["prepare_model"].call_args.args[2].kind, "ollama")
 
     def test_existing_model_can_be_bypassed_for_hardware_recommendation(self):
         path = gguf(self.root / "models" / "existing.gguf")
-        app.setup(FakeUI([1, 0], consent=False), self.root)
+        app.setup(FakeUI([2, 1], consent=False), self.root)
         self.assertTrue(path.exists())
         self.operations["install_python"].assert_not_called()
 
-    def test_extractive_mode_skips_every_model_operation(self):
-        self.assertTrue(app.setup(FakeUI([1]), self.root))
+    def test_default_extractive_mode_skips_every_model_operation(self):
+        self.assertTrue(app.setup(FakeUI([0]), self.root))
         self.operations["install_python"].assert_called_once()
         self.operations["install_runtime"].assert_not_called()
         self.operations["verify_model_reference"].assert_not_called()
+        self.server.assert_not_called()
+
+    def test_existing_cache_does_not_change_extractive_default(self):
+        manifest(self.root / "models")
+        ui = FakeUI([0])
+        self.assertTrue(app.setup(ui, self.root))
+        self.assertEqual(next(v[1][0] for k, v in ui.events if k == "choose"), "Install extractive app only (no model)")
+        self.operations["install_runtime"].assert_not_called()
         self.server.assert_not_called()
 
     def test_old_macos_still_offers_python_only_setup(self):
@@ -369,7 +388,7 @@ class ConsentFlowTests(unittest.TestCase):
     def test_changed_model_tag_blocks_package_and_runtime_downloads(self):
         self.operations["verify_model_reference"].side_effect = support.SetupError("manifest changed")
         with self.assertRaises(support.SetupError):
-            app.setup(FakeUI([0]), self.root)
+            app.setup(FakeUI([1]), self.root)
         self.operations["install_python"].assert_not_called()
         self.operations["install_runtime"].assert_not_called()
 
@@ -396,7 +415,7 @@ class ConsentFlowTests(unittest.TestCase):
     def test_failed_model_setup_stops_server_and_does_not_mark_success(self):
         self.operations["prepare_model"].side_effect = support.SetupError("pull failed")
         with self.assertRaises(support.SetupError):
-            app.setup(FakeUI([0]), self.root)
+            app.setup(FakeUI([1]), self.root)
         self.assertTrue(self.server_stopped)
         self.assertFalse((self.root / "models" / "setup.json").exists())
 
@@ -466,6 +485,11 @@ class MutationSafetyTests(unittest.TestCase):
             self.assertEqual(env["OLLAMA_HOST"], "127.0.0.1:11435")
             self.assertEqual(env["OLLAMA_NO_CLOUD"], "1")
             self.assertEqual(env["OLLAMA_MODELS"], str(self.root / "models" / "ollama"))
+            self.assertEqual(env["OLLAMA_CONTEXT_LENGTH"], "2048")
+            self.assertEqual(env["OLLAMA_NUM_PARALLEL"], "1")
+            self.assertEqual(env["OLLAMA_MAX_LOADED_MODELS"], "1")
+            self.assertEqual(env["OLLAMA_MAX_QUEUE"], "1")
+            self.assertEqual(env["OLLAMA_KEEP_ALIVE"], "0")
             self.assertEqual(os.environ["OLLAMA_HOST"], "https://remote.invalid")
 
     def test_occupied_port_does_not_start_or_control_another_server(self):

@@ -13,27 +13,28 @@ Use **Content and changes** to inspect dependencies and review drafts, **Ask and
 
 - **Python + Streamlit** — application logic and web UI.
 - **TF-IDF** — local, approval-aware evidence retrieval.
-- **Ollama + LangChain** — optional generation adapter; no successful live-model run yet.
+- **Ollama + LangChain** — optional small-model evidence selection; Python renders excerpts, not generated prose.
 - **Markdown + JSON** — content, shared facts, approvals, and evaluation cases.
 - **unittest + Streamlit AppTest** — automated checks; browser smoke-tested on Windows.
-- **Promptfoo** — real-pipeline provider/configuration; CLI execution pending installation.
+- **Promptfoo** — installed, locked, real-pipeline checks; smoke and negative control verified.
 - **Local quality gate** — no hosted GitHub Actions enabled.
 
 ## Easy way to start
 
-Install [Python 3.11.8+](https://www.python.org/downloads/), then open a terminal in this project's folder.
+Install [Python 3.13](https://www.python.org/downloads/), the tested dependency-lock path, then open a terminal in this project's folder.
 
 | Step | Windows (cmd / cmder cmd) | macOS (zsh / Bash) |
 | --- | --- | --- |
-| Run the setup TUI | `py -m scripts.setup_local` | `python3 -m scripts.setup_local` |
+| Run the setup TUI | `py -3.13 -m scripts.setup_local` | `python3.13 -m scripts.setup_local` |
 | Launch the app after setup | `.\.venv\Scripts\python.exe -m streamlit run docs_radar/app.py` | `./.venv/bin/python -m streamlit run docs_radar/app.py` |
 
-Choose **Install extractive app only (no model)** for the quickest start.
+Keep the default **Install extractive app only (no model)** for the quickest start; no GPU, Ollama, or model weights are needed.
 Use Up/Down and Enter to navigate, and review the download table before accepting.
 Open http://localhost:8501 after launching the app.
 The default app shows cited excerpts, not model-generated answers.
 The frozen quality suite currently passes 10/12 deterministic checks; Q02 patient coverage and Q05 post-recommendation guidance still fail.
-Live generation, Promptfoo CLI execution, and human citation-support review remain incomplete.
+The optional 4B model-selected-excerpt path also passes 10/12; it is not free-form generation or a complete quality pass.
+Human citation-support review remains incomplete.
 
 <details>
 <summary>Need more? Expand setup details, current limitations, and verification checks</summary>
@@ -41,9 +42,9 @@ Live generation, Promptfoo CLI execution, and human citation-support review rema
 <details>
 <summary><strong>Local installation — Windows and macOS</strong></summary>
 
-The extractive setup requires Python 3.11.8+; Ollama and Node are not required.
-The app, tests, CLI checks, and an Edge browser workflow are tested on Windows with Python 3.15.1.
-macOS installation and runtime are not tested.
+Use Python 3.13; the terminal bootstrap accepts 3.11.8+, but other minors are not the locked installation path.
+Windows validation uses Python 3.13.17; earlier browser smoke evidence used 3.15.1.
+macOS ARM64/Intel wheel-resolution dry runs passed, but native installation and runtime are not tested.
 Application code lives in `docs_radar/`, setup tools and requirements in `scripts/`, and all tests in `tests/`.
 Content, data, and frozen evaluation fixtures remain in `content/`, `data/`, and `evals/`.
 
@@ -52,12 +53,12 @@ Content, data, and frozen evaluation fixtures remain in `content/`, `data/`, and
 <details>
 <summary><strong>Interactive installer</strong></summary>
 
-Install [Python 3.11.8+](https://www.python.org/downloads/) first; the bootstrap itself uses no third-party packages.
+Install [Python 3.13](https://www.python.org/downloads/) first; the bootstrap itself uses no third-party packages.
 Run from the project folder in an interactive terminal:
 
 | Windows (cmd / cmder cmd) | macOS (zsh / Bash) |
 | --- | --- |
-| `py -m scripts.setup_local` | `python3 -m scripts.setup_local` |
+| `py -3.13 -m scripts.setup_local` | `python3.13 -m scripts.setup_local` |
 
 Use Up/Down and Enter to choose an existing model, request a hardware recommendation, or install only the extractive app.
 The installer shows a paged download table, then asks `Start downloading? [Y/n]`; Enter defaults to Yes on the final page.
@@ -66,8 +67,8 @@ Yes creates/reuses `.venv`, installs `scripts/requirements.txt` and its dependen
 N starts no downloads and shows the manual model folder and rerun instructions.
 Esc or Ctrl+C cancels; existing model files are not deleted.
 
-Installer checks are offline tests plus a real Windows hardware probe, not completed native installations or generation tests.
-Neither Windows nor macOS end-to-end installation has been exercised yet.
+Ollama 0.40.14, the pinned 4B model, Python dependencies, and real local calls were installed/executed on Windows with consent.
+A clean-checkout end-to-end installer run and native macOS execution remain unverified.
 
 </details>
 
@@ -80,12 +81,12 @@ From a local checkout of this repository, run the commands for your terminal:
 
 | Step | Windows (cmd / cmder cmd) | macOS (zsh / Bash) |
 | --- | --- | --- |
-| Create once | `py -m venv .venv` | `python3 -m venv .venv` |
+| Create once | `py -3.13 -m venv .venv` | `python3.13 -m venv .venv` |
 | Activate each new terminal | `.\scripts\start.cmd` | `source .venv/bin/activate` |
 | Leave the environment | `deactivate` | `deactivate` |
 
 Do not copy `.venv`, executables, or installed packages between operating systems.
-`scripts/requirements.txt` pins the direct runtime dependency; transitive dependencies are not fully locked yet.
+`scripts/requirements.txt` includes the Python 3.13 transitive constraints; OS markers exclude dependencies not needed on macOS.
 
 > On Windows, use `.\scripts\start.cmd`, not bare `start`, which opens a new window.
 
@@ -109,11 +110,13 @@ Tests use separate synthetic approvals; they do not change real content approval
 <details>
 <summary><strong>Optional local-model setup</strong></summary>
 
-The installer prepares the runtime; generation remains optional and has not been live-tested.
-An adapter in `docs_radar/generation.py` composes the approved retriever, LangChain, local Ollama, and strict JSON parsing.
-Offline contract tests do not establish model quality.
+The no-model path is the recommended demo default, including on a hiring manager's machine.
+Optional model selection uses `docs_radar/generation.py`: approved retrieval → LangChain/Ollama → source indices → complete excerpts.
+Python retains the source wording and registered citations; the model cannot write or shorten guidance.
+Selection can still be irrelevant or incomplete; this is not semantic-entailment verification or free-form generation.
+The original pinned `qwen3:4b` was tested; no custom template or larger model is required.
 After explicitly choosing to download optional dependencies, run `python -m pip install -r scripts/requirements-model.txt` in the activated environment on either Windows or macOS.
-This pins the direct LangChain integration version; compatibility and transitive locking remain unverified until installation.
+The LangChain integration and its Python 3.13 dependency closure are pinned; `pip check` passed on Windows.
 The installer uses official standalone archives so installation stays in the terminal, without administrator access, a GUI installer or global PATH changes.
 It keeps a separate runtime rather than modifying an existing system-wide Ollama installation.
 
@@ -125,11 +128,12 @@ It keeps a separate runtime rather than modifying an existing system-wide Ollama
 | Manual model folder | `models\` in this project | `models/` in this project |
 | Managed model cache | `models\ollama\` | `models/ollama/` |
 
-Recommendations range from Qwen3 0.6B to 8B, all Apache 2.0, using available RAM, NVIDIA free VRAM or Apple unified memory, and disk space.
-CPU recommendations stop at 4B; Intel Macs and unverified/AMD Windows accelerators use CPU sizing.
-This is a conservative heuristic, not a benchmark or proof of answer quality.
+Recommendations stop at Qwen3 4B on every machine; smaller 0.6B/1.7B options remain hardware-dependent and are not quality-validated here.
+All three use Apache 2.0 licences.
+The adapter rejects models above 4B class or 3 GiB of weights, unknown size/memory, and insufficient measured RAM/VRAM headroom before inference.
+Large files already on disk are left alone, not offered or loaded by the app.
+These conservative checks reduce resource risk; they do not guarantee peak memory, latency, or comfort on another device.
 Archive sizes/checksums and model manifests are pinned; changed remote manifests stop setup rather than silently changing downloads.
-Python's direct dependency is pinned, but its transitive dependencies are not fully locked.
 
 For manual downloads, put a complete, single-file `.gguf` directly in `models/`, then rerun the installer and select it with the arrow keys.
 The decline screen links to the suggested model's official Qwen publisher page.
@@ -139,16 +143,21 @@ Importing a GGUF can create a second copy in the managed cache, so reserve disk 
 Everything under `models/` is Git-ignored, including local setup metadata and logs; never force-add weights or use Git LFS for them.
 
 After a successful model installation, activate `.venv` and run `python -m scripts.setup_local --serve` from the project folder to start its server.
-The server binds only to http://127.0.0.1:11435, sets `OLLAMA_NO_CLOUD=1`, and uses a 4096-token context.
+The server binds only to http://127.0.0.1:11435 with cloud disabled, one loaded model, and one request at a time.
+Selection uses a 2,048-token context, at most 64 output tokens, two CPU threads, a 30-second response timeout, and no repair retries.
+Oversized evidence is rejected rather than truncated.
+`keep_alive=0` unloads the model after each request; repeated calls reload it.
 It does not modify the default Ollama server on port 11434 or global user settings.
 Keep that terminal open; Enter or Ctrl+C stops the project server.
 Setup itself stops its temporary server on completion and records the selected model/digest in `models/setup.json`; it does not claim a generation smoke test passed.
-In **Ask and inspect**, choose **Live-model** and enter the installed tag from `models/setup.json`.
-The adapter never pulls models; missing dependencies/runtime or invalid output return explicit errors, not silent fallback.
+In **Ask and inspect**, choose **Model-selected excerpts (optional)** and enter the installed tag from `models/setup.json`.
+The adapter never pulls models; resource limits, missing dependencies/runtime, or invalid selections return explicit errors, not silent fallback.
 For all 12 evaluation cases, run `python -m evals.run --mode live-model --model <installed-tag>` in another activated terminal on either OS.
 This saves local provenance and outputs; human support review remains separate.
-The recorded live-path attempt has zero successful model calls and is labelled incomplete.
-If the machine cannot run a model comfortably, choose the extractive app—not a hosted fallback.
+The current Windows run completed six actual selection calls in 2.3–3.3 seconds each; eligibility/clarification/abstention gates skipped the other six.
+Both modes retain Q02/Q05 failures; human support review is still missing.
+The older zero-call report remains historical, not current installation status.
+If the machine cannot run a model comfortably, choose the extractive app—not a larger model or hosted fallback.
 
 Official references: [pinned runtime release](https://github.com/ollama/ollama/releases/tag/v0.40.14), [Windows](https://docs.ollama.com/windows), [macOS](https://docs.ollama.com/macos), [GGUF import](https://docs.ollama.com/import), [local-only configuration](https://docs.ollama.com/faq).
 
@@ -197,7 +206,7 @@ python -m scripts.quality_gate
 The evaluator currently exits **1**: 10/12 deterministic passes, Source Recall@3 **6/7 (0.8571)** below 0.90, and Q02/Q05 failures.
 Citation validity/structural coverage are 14/14; factual support is unmeasured with 0/14 claims human-reviewed.
 The demonstration records an isolated control's exits **0 → 1 → 0**, not a full-suite pass.
-The full gate returns **2** while Promptfoo is not installed; its failed quality step remains visible.
+The full gate returns **1** for the known quality failures; installed Promptfoo runs the actual suite rather than being skipped.
 Reports identify code, corpus, dataset and mode; `reports/README.md` explains review and comparison.
 Raw outputs and fresh local reports stay in Git-ignored `reports/local/`.
 
@@ -205,16 +214,17 @@ Optional Promptfoo requires Node 24 LTS.
 After explicitly choosing to install its pinned package, run from the repository root on either OS:
 
 ```text
-npm install --prefix evals
+npm ci --prefix evals
 python -m scripts.run_promptfoo
 python -m scripts.run_promptfoo --negative-control
 python -m scripts.run_promptfoo --suite
 ```
 
 The smoke should pass, the deliberately incorrect negative control should fail, and the full suite retains known quality failures.
-These Promptfoo CLI outcomes have not been executed here; only direct Python provider/assertion tests have run.
+These CLI checks were executed on Windows: smoke exit 0, negative-control exit 100, full suite 10/12 with Q02/Q05 failing.
 The launcher never downloads packages automatically and disables telemetry/update checks.
-Promptfoo's direct version is pinned; a tested transitive package lock remains outstanding.
+`evals/package-lock.json` pins the declared Promptfoo dependency tree.
+A clean `npm ci` remains unverified; the existing installation includes extraneous packages.
 No hosted model, paid judge, report upload or hosted CI is configured.
 
 </details>
@@ -256,6 +266,9 @@ In **Content and changes**, inspect the rendered topic and facts before entering
 **Save draft** validates metadata and invalidates an old approval when the content changes; it never reapproves it.
 **Remove answer eligibility** returns the topic to draft.
 If a topic or referenced fact changes during review, reload before approving.
+The two files in `content/drafts/` propose the missing patient guidance and the provider boundary-date correction; they are intentionally outside the answer corpus.
+Review their wording and routing against the linked source before authorizing promotion and an explicitly versioned evaluation-corpus update.
+No real approval, frozen v2 fixture, expectation, threshold, or baseline was changed.
 
 </details>
 
@@ -268,7 +281,7 @@ Retrieval defaults to today's local date and records it; tests use explicit date
 | Reference date | Applicable guidance |
 | --- | --- |
 | Before December 4, 2026 | Explain the recommended transfer date, its patient-impact rationale, and the final login closure |
-| December 4, 2026–January 19, 2027 | Acknowledge that the recommended date has passed; retain supported guidance to transfer before login closes |
+| December 4, 2026–January 19, 2027 | The window to follow the “before December 4” recommendation has passed; retain its rationale and supported transfer guidance |
 | January 20, 2027 onward | Do not promise continued login access; abstain from recovery instructions without supporting evidence |
 
 These are demo selection rules based on evidence captured November 1, 2026, not live verification of Fullscript's policies.

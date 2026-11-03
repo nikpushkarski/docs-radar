@@ -1,2 +1,4 @@
-# Direct runtime dependency; transitive dependencies are not fully locked yet.
+# Python 3.13 is the tested, transitively pinned path on Windows.
+# Shared markers avoid forcing Windows-only dependencies onto macOS.
+-c constraints-python313.txt
 streamlit==1.66.1
