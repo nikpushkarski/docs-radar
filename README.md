@@ -4,14 +4,17 @@ Documentation change-impact detection and a citation-grounded AI assistant, with
 
 ## Current status
 
-Basic Streamlit page, three attributed source summaries, and three written question cases.
+Streamlit evidence interface, three attributed source summaries, and three written question cases.
+The interface accepts a question, audience, and reference date, then shows cited excerpts or an explicit clarification, abstention, or error.
 Source validation checks required provenance fields and allowed review states; three automated tests cover valid data, missing provenance, and an invalid review state.
 CLI scripts also render shared facts, identify affected topics for a supplied synthetic change, and calculate content fingerprints.
 A standalone approval gate excludes topics without a matching demo approval; no real approvals have been recorded.
 Initial CLI retrieval combines approval checks, audience/date selection, and local TF-IDF ranking.
 Only the provider migration topic currently declares answer passages.
 Explicit unresolved-conflict flags return a conflict result instead of answer context; contradictions are not detected automatically.
-AI answers, answer evaluations, and CI gates are not implemented yet.
+Extractive output uses the real retrieval pipeline; no LLM generates the displayed text.
+Account-transfer status questions have limited explicit abstention rules, not a general intent classifier.
+Live-model answers, the full regression evaluation suite, and CI gates are not implemented yet.
 
 ## Use
 
@@ -28,6 +31,15 @@ After activation, use `python -m pip` for package installation on either platfor
 Create `.venv` locally on each machine; do not copy it between operating systems.
 
 > On Windows, use `.\start.cmd`, not bare `start`, which opens a new window.
+
+After activation, launch the app from the project folder:
+
+```text
+python -m streamlit run app.py
+```
+
+With the current empty approval store, the app explains that no demo-approved content is available.
+Tests use temporary synthetic approvals; they do not approve the real corpus.
 
 ## Check source validation
 
@@ -73,7 +85,7 @@ Approvals apply only to this independent demo, not Fullscript.
 ## Date-aware passage selection
 
 Select guidance by audience and reference date rather than expiring an entire topic when one deadline passes.
-The intended retrieval default is today's date; tests use explicit dates.
+Retrieval defaults to today's local date and records it; tests use explicit dates.
 
 | Reference date | Applicable guidance |
 | --- | --- |

@@ -134,21 +134,26 @@ def retrieve(question, audience, reference_date=None, *, topics, facts, sources,
     }
 
 
+def load_workspace(root=ROOT):
+    root = Path(root)
+    return {
+        "topics": {
+            path.name: path.read_text(encoding="utf-8")
+            for path in (root / "content").glob("*.md")
+        },
+        "facts": json.loads((root / "data/facts.json").read_text(encoding="utf-8")),
+        "sources": json.loads((root / "data/sources.json").read_text(encoding="utf-8")),
+        "approvals": load_approvals(root / "data/approvals.json"),
+    }
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Retrieve local evidence without generating an answer")
     parser.add_argument("question")
     parser.add_argument("--audience", required=True, choices=("Providers", "Patients"))
     parser.add_argument("--date", dest="reference_date", help="YYYY-MM-DD; defaults to today's local date")
     args = parser.parse_args()
-    topics = {
-        path.name: path.read_text(encoding="utf-8")
-        for path in (ROOT / "content").glob("*.md")
-    }
     result = retrieve(
-        args.question, args.audience, args.reference_date,
-        topics=topics,
-        facts=json.loads((ROOT / "data/facts.json").read_text(encoding="utf-8")),
-        sources=json.loads((ROOT / "data/sources.json").read_text(encoding="utf-8")),
-        approvals=load_approvals(ROOT / "data/approvals.json"),
+        args.question, args.audience, args.reference_date, **load_workspace()
     )
     print(json.dumps(result, indent=2, ensure_ascii=False))
