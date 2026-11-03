@@ -66,3 +66,20 @@ The approval gate admits a topic only when its current fingerprint matches its s
 
 Eligible here means passing the approval gate, not guaranteed relevance to a question.
 Approvals apply only to this independent demo, not Fullscript.
+
+## Date-aware passage selection
+
+Select guidance by audience and reference date rather than expiring an entire topic when one deadline passes.
+The intended retrieval default is today's date; tests use explicit dates.
+
+| Reference date | Applicable guidance |
+| --- | --- |
+| Before December 4, 2026 | Explain the recommended transfer date, its patient-impact rationale, and the final login closure |
+| December 4, 2026–January 19, 2027 | Acknowledge that the recommended date has passed; retain supported guidance to transfer before login closes |
+| January 20, 2027 onward | Do not promise continued login access; abstain from recovery instructions without supporting evidence |
+
+These are demo selection rules based on evidence captured November 1, 2026, not live verification of Fullscript's policies.
+The first interval starts on that capture date; earlier historical answers are not established by this snapshot.
+The audience/date filter is tested against routing fixtures and the migration topic's actual passages, including both date boundaries.
+Passage rules live in the topic's JSON metadata block, so changing them invalidates its approval fingerprint.
+Approval filtering, passage selection, and text ranking are not yet connected into a retrieval pipeline.

@@ -244,8 +244,16 @@ This is runtime eligibility data, not a narrative review document.
 #### T10 — Retrieve the right sources
 
 **Learn:** Retrieval chooses evidence; generation writes from it.
-**Do:** Filter by approval and applicable metadata, then rank eligible content lexically. Return the top three distinct source IDs with their relevant passages.
-**Done:** A known question retrieves its expected source; an ineligible source cannot appear. Empty or conflicting evidence is represented explicitly.
+**Do:** Filter approved passages by audience and reference date, then rank applicable content lexically.
+The application defaults to today's date and records the resolved date; tests supply explicit dates.
+Use passage-level intervals with inclusive starts and exclusive ends rather than expiring an entire topic when one recommendation passes its date.
+Keep supported instructions available between the recommended transfer date and final closure; do not invent post-closure recovery procedures.
+Include passage routing metadata in approval fingerprints before connecting the filter to retrieval.
+Return the top three distinct source IDs with their relevant passages.
+**Done:** A known question retrieves its expected source; unapproved or inapplicable passages cannot appear.
+Boundary tests cover December 3/4 and January 19/20, with appropriate guidance on either side and no assumption of access on the closure date.
+Empty or conflicting evidence is represented explicitly.
+Routing fixtures alone do not establish answer quality or live verification.
 
 ### Answers and the local model
 
