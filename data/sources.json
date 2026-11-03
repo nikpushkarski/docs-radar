@@ -11,6 +11,7 @@
       "If you haven't moved your Rupa data"
     ],
     "evidence_type": "demo_authored_summary",
+    "review_state": "captured",
     "summary": "Providers should transfer their Rupa data (patients, orders, and history) to Fullscript by January 20, 2027, when Rupa login access closes. Fullscript strongly recommends completing the transfer before December 4, 2026 to avoid disrupting patients with outstanding orders. Starting October 30, 2026, Rupa is view-only for providers, and new lab orders must be placed through Fullscript. Patients whose providers haven’t transferred their Rupa data must pay existing unpaid orders by December 23, 2026; unpaid orders are canceled after that date.",
     "summary_sha256": "7babb0d77b31658e80b8ba28e990103acfafd88195a4c05e102edbb8077baec7"
   },
