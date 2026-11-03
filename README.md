@@ -102,7 +102,11 @@ Tests use separate synthetic approvals; they do not change real content approval
 <details>
 <summary><strong>Optional local-model setup</strong></summary>
 
-The installer prepares the runtime for planned model integration; it does not enable generated answers in the app yet.
+The installer prepares the runtime; generation remains optional and has not been live-tested.
+An adapter in `docs_radar/generation.py` composes the approved retriever, LangChain, local Ollama, and strict JSON parsing.
+Offline contract tests do not establish model quality.
+After explicitly choosing to download optional dependencies, run `python -m pip install -r scripts/requirements-model.txt` in the activated environment on either Windows or macOS.
+This pins the direct LangChain integration version; compatibility and transitive locking remain unverified until installation.
 It uses official standalone archives so installation stays in the terminal, without administrator access, a GUI installer or global PATH changes.
 It keeps a separate runtime rather than modifying an existing system-wide Ollama installation.
 

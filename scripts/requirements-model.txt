@@ -1,0 +1,3 @@
+# Optional; not installed by the extractive setup. Live compatibility is unverified.
+-r requirements.txt
+langchain-ollama==1.1.0
