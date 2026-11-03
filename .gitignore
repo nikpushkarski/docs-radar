@@ -3,12 +3,14 @@ __pycache__/
 *.py[cod]
 .playwright-cli/
 
-# Keep local model weights and installers outside the repository.
+# Project-local models are private local state, never Git content.
+# Runtime binaries and download staging normally stay outside the repository.
 /models/
 /.ollama/
 /downloads/
 /OllamaSetup.exe
 /ollama-*.zip
+/ollama-*.tgz
 /*.dmg
 /Ollama.app/
 *.gguf

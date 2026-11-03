@@ -133,8 +133,13 @@ The same Python application, tests, content, and frozen evaluation fixtures must
 Use the shared requirements file and create a new virtual environment on each machine; `start.cmd` is optional Windows convenience, not an application dependency.
 Use portable paths and keep native installer actions outside the shared runtime code.
 
-Ollama is installed independently with the native Windows `.exe` or macOS `.dmg`; both expose the same loopback HTTP API.
-Keep installers, models, and runtime caches outside the repository on both systems, and disable cloud features.
+Ollama is installed independently using official, pinned Windows/macOS CLI archives so the bootstrap stays entirely in a terminal UI.
+Both expose the same loopback HTTP API; this project uses port 11435 to avoid changing an existing default Ollama service.
+Keep runtime binaries and temporary archive downloads outside the repository, and disable cloud features per server process.
+At Nik's request, models now live inside the project in Git-ignored `models/`: manual single-file GGUFs at the root, managed Ollama cache in `models/ollama/`.
+Never commit weights, local setup metadata or logs.
+The installer must detect existing models, offer arrow-key/Enter selection or a hardware recommendation, and show the proposed downloads before a default-Yes `[Y/n]` prompt.
+Declining must start no downloads and explain manual model placement plus rerun; EOF/cancellation must never imply consent.
 Check the actual architecture and memory: current macOS Ollama requires macOS 14+ and supports Apple silicon CPU/GPU or Intel CPU-only execution.
 Keep the extractive path available without Ollama, CUDA, or any model download.
 Document both setup paths, but report macOS as unverified until its installation and runtime checks are actually executed.

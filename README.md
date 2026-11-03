@@ -1,6 +1,24 @@
+> [!IMPORTANT]
+> Docs Radar is an independent demo and is **not affiliated with, endorsed by, or sponsored by Fullscript**.
+
 # Docs Radar
 
-Documentation change-impact detection and a citation-grounded AI assistant, with automated evaluations and CI quality gates.
+## Easy way to start
+
+Install [Python 3.11.8+](https://www.python.org/downloads/), then open a terminal in this project's folder.
+
+| Step | Windows (cmd / cmder cmd) | macOS (zsh / Bash) |
+| --- | --- | --- |
+| Run the setup TUI | `py setup_local.py` | `python3 setup_local.py` |
+| Launch the app after setup | `.\.venv\Scripts\python.exe -m streamlit run app.py` | `./.venv/bin/python -m streamlit run app.py` |
+
+Choose **Install extractive app only (no model)** for the quickest start.
+Use Up/Down and Enter to navigate, and review the download table before accepting.
+Open http://localhost:8501 after launching the app.
+The current app shows cited excerpts, not model-generated answers.
+
+<details>
+<summary>Need more? Expand setup details, current limitations, and verification checks</summary>
 
 ## Current status
 
@@ -20,9 +38,31 @@ Live-model answers, Promptfoo evaluation, complete evaluation assertions/metrics
 ## Local installation — Windows and macOS
 
 The current extractive app needs Python 3.11+; Ollama is not required.
-Windows is tested with Python 3.15.1; macOS instructions are documented but not runtime-tested.
+The app is tested on Windows with Python 3.15.1; macOS is not runtime-tested.
 
-Use a fresh virtual environment on each machine.
+### Interactive installer
+
+Install [Python 3.11.8+](https://www.python.org/downloads/) first; the bootstrap itself uses no third-party packages.
+Run from the project folder in an interactive terminal:
+
+| Windows (cmd / cmder cmd) | macOS (zsh / Bash) |
+| --- | --- |
+| `py setup_local.py` | `python3 setup_local.py` |
+
+Use Up/Down and Enter to choose an existing model, request a hardware recommendation, or install only the extractive app.
+The installer shows a paged download table, then asks `Start downloading? [Y/n]`; Enter defaults to Yes on the final page.
+No network requests, package installations or model downloads occur before consent.
+Yes creates/reuses `.venv`, installs `requirements.txt` and its dependencies, and optionally installs a pinned Ollama runtime and model.
+N starts no downloads and shows the manual model folder and rerun instructions.
+Esc or Ctrl+C cancels; existing model files are not deleted.
+
+Installer checks are offline tests plus a real Windows hardware probe, not completed native installations or generation tests.
+Neither Windows nor macOS end-to-end installation has been exercised yet.
+
+### Manual extractive-only setup / launching after installation
+
+If you used the installer, skip environment creation and dependency installation below; activate the environment and launch the app.
+Otherwise, use a fresh virtual environment on each machine.
 From a local checkout of this repository, run the commands for your terminal:
 
 | Step | Windows (cmd / cmder cmd) | macOS (zsh / Bash) |
@@ -48,39 +88,41 @@ To see excerpts, choose Providers and reference date November 1, 2026, then ask 
 Verify startup with `python -m unittest test_app.py`.
 Tests use separate synthetic approvals; they do not change real content approvals.
 
-## Optional local-model installation
+## Optional local-model setup
 
-This prepares the runtime for the planned model integration; installing it does not enable generative answers in the app yet.
-Use the native installer for each OS, never the Windows `.exe` on macOS.
+The installer prepares the runtime for planned model integration; it does not enable generated answers in the app yet.
+It uses official standalone archives so installation stays in the terminal, without administrator access, a GUI installer or global PATH changes.
+It keeps a separate runtime rather than modifying an existing system-wide Ollama installation.
 
 | | Windows | macOS |
 | --- | --- | --- |
-| Official installer | [Windows `.exe`](https://ollama.com/download/windows) | [macOS `.dmg`](https://ollama.com/download/mac) |
-| Requirements | Windows 10 22H2+; supported GPU/driver or CPU | macOS 14 Sonoma+; Apple silicon CPU/GPU, Intel CPU-only |
-| App location | `%LOCALAPPDATA%\Programs\Ollama` | `/Applications/Ollama.app` |
-| Model location | `%USERPROFILE%\.ollama\models` | `~/.ollama/models` |
-| Server configuration | `%USERPROFILE%\.ollama\server.json` | `~/.ollama/server.json` |
+| Runtime requirements | Windows 10 22H2+ / Windows 11; x64 or ARM64 | macOS 14+; Apple silicon or Intel |
+| Ollama 0.40.14 archive | Native Windows `.zip` | Universal macOS `.tgz` |
+| Runtime directory | `%LOCALAPPDATA%\DocsRadar\ollama\0.40.14\<arch>` | `~/Library/Application Support/DocsRadar/ollama/0.40.14/<arch>` |
+| Manual model folder | `models\` in this project | `models/` in this project |
+| Managed model cache | `models\ollama\` | `models/ollama/` |
 
-Download installers to a temporary or Downloads folder outside this repository.
-Install Ollama with the native installer; on macOS, drag the app to Applications and allow its CLI setup when prompted.
-Before running a model, add `"disable_ollama_cloud": true` to the server configuration file, preserving any existing settings, then quit and restart Ollama.
-Create the directory/file if absent; a new file can contain just `{"disable_ollama_cloud": true}`.
-Keep the server on its default loopback address, http://127.0.0.1:11434; do not expose it to the network or configure a cloud fallback.
+Recommendations range from Qwen3 0.6B to 8B, all Apache 2.0, using available RAM, NVIDIA free VRAM or Apple unified memory, and disk space.
+CPU recommendations stop at 4B; Intel Macs and unverified/AMD Windows accelerators use CPU sizing.
+This is a conservative heuristic, not a benchmark or proof of answer quality.
+Archive sizes/checksums and model manifests are pinned; changed remote manifests stop setup rather than silently changing downloads.
+Python's direct dependency is pinned, but its transitive dependencies are not fully locked.
 
-The initial candidate is [qwen3:4b](https://ollama.com/library/qwen3:4b), Q4_K_M, about 2.5 GB, Apache 2.0.
-Check available memory and disk first; Windows Ollama installation additionally requires at least 4 GB of disk space.
-After installation and local-only configuration, these commands are the same on both platforms:
+For manual downloads, put a complete, single-file `.gguf` directly in `models/`, then rerun the installer and select it with the arrow keys.
+The decline screen links to the suggested model's official Qwen publisher page.
+Existing complete Ollama caches in `models/ollama/` are also detected; partial files, split GGUFs and Safetensors are not imported.
+GGUF header detection is not proof of model compatibility; Ollama must successfully import it.
+Importing a GGUF can create a second copy in the managed cache, so reserve disk space for both.
+Everything under `models/` is Git-ignored, including local setup metadata and logs; never force-add weights or use Git LFS for them.
 
-```text
-ollama --version
-ollama pull qwen3:4b
-ollama list
-```
+After a successful model installation, activate `.venv` and run `python setup_local.py --serve` to start its server.
+The server binds only to http://127.0.0.1:11435, sets `OLLAMA_NO_CLOUD=1`, and uses a 4096-token context.
+It does not modify the default Ollama server on port 11434 or global user settings.
+Keep that terminal open; Enter or Ctrl+C stops the project server.
+Setup itself stops its temporary server on completion and records the selected model/digest in `models/setup.json`; it does not claim a generation smoke test passed.
+If the machine cannot run a model comfortably, choose the extractive app—not a hosted fallback.
 
-The pull command downloads the model; none of these installation steps has been executed for this project yet.
-Model files stay outside Git, and `.gitignore` also guards against accidentally placed installers or weights.
-If the machine cannot run the model comfortably, use the extractive app above—not an automatic paid fallback.
-Native setup requirements: [Windows](https://docs.ollama.com/windows), [macOS](https://docs.ollama.com/macos), [local-only configuration](https://docs.ollama.com/faq).
+Official references: [pinned runtime release](https://github.com/ollama/ollama/releases/tag/v0.40.14), [Windows](https://docs.ollama.com/windows), [macOS](https://docs.ollama.com/macos), [GGUF import](https://docs.ollama.com/import), [local-only configuration](https://docs.ollama.com/faq).
 
 ## Check source validation
 
@@ -157,3 +199,5 @@ The audience/date filter is tested against routing fixtures and the migration to
 Passage rules live in the topic's JSON metadata block, so changing them invalidates its approval fingerprint.
 Initial retrieval connects approval filtering, passage selection, and text ranking, returning evidence rather than a generated answer.
 The approved provider migration topic can supply dated excerpts; other topics remain ineligible.
+
+</details>

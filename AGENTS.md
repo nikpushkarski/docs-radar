@@ -94,13 +94,21 @@ Windows is today's development machine, not the only supported target: a fresh m
 - Treat `start.cmd` as a Windows convenience only; the app and tests must also run through the documented Python commands on macOS.
 - Keep Python dependency installation reproducible from shared requirements; use environment markers for genuinely OS-specific dependencies rather than copying a Windows-only environment freeze into universal setup instructions.
 - Recreate virtual environments per machine; never copy `.venv`, native executables, or installed packages between Windows and macOS.
-- Separate the project from native runtime installers: use Ollama's Windows installer on Windows and its macOS installer on macOS, with the same local HTTP API contract for application code.
+- Separate shared application code from native runtime distribution: the terminal installer uses official, checksum-pinned Windows or macOS Ollama archives, with the same local HTTP API contract for application code.
+Do not launch a GUI installer from the TUI or require a package manager/admin access merely to bootstrap it.
 - Before choosing an installer or model, inspect OS, CPU architecture, available memory, GPU support, and disk; check current official requirements and licences.
 Do not assume every Mac has Apple silicon or GPU acceleration.
-- Store installers, model weights, and runtime caches outside the repository on every OS; ignore accidental local artifacts as a backup.
-Do not add model binaries to Git or Git LFS as part of this demo.
+- Keep runtime binaries and download staging outside the repository on every OS.
+At Nik's explicit request, model files now live inside the project under the fully Git-ignored `models/` directory: manual single-file GGUFs at its root and managed Ollama weights under `models/ollama/`.
+Do not add models, local runtime metadata or logs to Git or Git LFS.
+- Keep setup's UI terminal-only and usable before any third-party packages exist.
+Show machine-specific downloads, sizes, sources and destinations before `Start downloading? [Y/n]`; Enter defaults to Yes only at that explicit prompt, never on EOF, cancellation or redirected input.
+No network requests, package installs or model payloads before consent.
+Offer arrow-key/Enter selection of existing supported models versus a fresh hardware recommendation.
+N must start no downloads and explain the manual model folder/rerun path; reusing weights still requires consent for missing Python/runtime dependencies.
 - Keep local generation optional for the extractive app; an unsupported or underpowered machine must retain the labelled extractive path without a hosted fallback.
-- Keep Ollama bound to loopback and cloud features disabled on both OSes.
+- Keep the project Ollama server bound to 127.0.0.1:11435 with cloud features disabled on both OSes, separate from any existing default Ollama service.
+Set model storage and local-only options per child process rather than changing global user settings.
 Do not introduce paid APIs, public listeners, platform-specific SDKs, or new services merely to achieve parity.
 - Update Windows and macOS setup instructions together whenever dependencies, startup commands, environment settings, or storage paths change.
 Record actual validation separately by OS; Windows tests, universal Python wheels, or documentation alone do not establish macOS runtime compatibility.
