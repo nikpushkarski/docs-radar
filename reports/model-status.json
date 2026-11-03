@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "task": "T13",
+  "status": "extractive_fallback",
+  "mode": "extractive",
+  "platform": "Windows 11 AMD64",
+  "python": "3.15.1",
+  "node": "24.14.0",
+  "model_id": null,
+  "model_digest": null,
+  "generation_run": false,
+  "reason": "No project model weights, Ollama executable, or LangChain packages are installed. Download consent remains an interactive installer boundary; autonomous implementation does not bypass it.",
+  "fallback": "Continue with the local extractive application and model-free tests; optional generation remains unverified.",
+  "macos_validation": "not_run"
+}
