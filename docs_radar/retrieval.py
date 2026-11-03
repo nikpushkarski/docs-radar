@@ -6,12 +6,12 @@ import math
 from pathlib import Path
 import re
 
-from approvals import eligible_topics, load_approvals
-from passage_selection import parse_date, select_applicable_passages
-from topic_passages import build_topic_passages
+from docs_radar.approvals import eligible_topics, load_approvals
+from docs_radar.passage_selection import parse_date, select_applicable_passages
+from docs_radar.topic_passages import build_topic_passages
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 STOP_WORDS = frozenset(
     "a an and are as at be by can do does for from how i in is it my of on "
     "or should that the their this to was what when where which who with".split()

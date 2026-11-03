@@ -130,7 +130,7 @@ Use existing compatible Python where possible. Install Promptfoo locally and loc
 ### Windows and macOS installation contract
 
 The same Python application, tests, content, and frozen evaluation fixtures must be usable from a fresh checkout on either OS.
-Use the shared requirements file and create a new virtual environment on each machine; `start.cmd` is optional Windows convenience, not an application dependency.
+Use `scripts/requirements.txt` and create a new virtual environment on each machine; `scripts/start.cmd` is optional Windows convenience, not an application dependency.
 Use portable paths and keep native installer actions outside the shared runtime code.
 
 Ollama is installed independently using official, pinned Windows/macOS CLI archives so the bootstrap stays entirely in a terminal UI.
@@ -380,24 +380,31 @@ Support-ticket deflection is unmeasured.
 Business instrumentation and measurement-plan documents are outside this build's scope.
 Do not claim production impact from offline tests or synthetic scenarios.
 
-## 9. Proposed repository layout
+## 9. Repository layout
 
-Create files incrementally, not all at once.
+Keep only the README, Git ignore rules, agent instructions, and required planning documents as root files.
+Create future components incrementally, not as empty scaffolding.
 
 ```text
+.gitignore
 AGENTS.md
 IMPLEMENTATION_PLAN.md
 PROGRESS.md
 README.md
-app.py
-docs_radar/             # schema, rendering, impact, retrieval, answers, metrics
+docs_radar/             # app.py and shared rendering, impact, retrieval, answers
+scripts/                # setup TUI, requirements.txt, start.cmd, maintenance tools
 content/                # demo-authored Markdown topics
 data/                   # source register, facts, changes, runtime approvals
-evals/                  # fixed cases, Python provider, assertions, two mode configs
-tests/                  # fixtures and unit/integration tests
-reports/                # small, attributable evaluation outputs
-.github/workflows/      # quality checks, once repository use is approved
+evals/                  # frozen cases/fixtures and real-pipeline suite wrapper
+tests/                  # all unit/integration tests, app smoke test and fixtures
+reports/                # planned: small, attributable evaluation outputs
+.github/workflows/      # planned: model-free quality checks
 ```
+
+Launch the app from the repository root with `python -m streamlit run docs_radar/app.py` after activating `.venv`.
+Run the setup TUI with `python -m scripts.setup_local`, the source validator with `python -m docs_radar.validate_source`, and the impact preview with `python -m docs_radar.detect_impact`.
+All tests, including the app smoke test, are discovered by `python -m unittest discover -s tests -q`.
+The frozen suite command remains `python -m evals.suite`; corpus paths, approvals, fixture content, and manifest hashes must not change just to relocate code.
 
 Keep private snapshots, credentials, virtual environments, model weights, and sensitive logs out of Git. Lock working Python and Node dependencies. The README must contain tested commands for the user's actual shell; do not prescribe Bash syntax to a Windows cmd session.
 

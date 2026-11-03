@@ -21,7 +21,7 @@ import venv
 import zipfile
 
 GIB = 1024 ** 3
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 BASE_URL = "http://127.0.0.1:11435"
 OLLAMA_VERSION = "0.40.14"
 # Official release asset sizes/SHA-256, checked 2026-11-03. No latest-version redirect.
@@ -379,7 +379,7 @@ def install_python(root, ui):
         venv.EnvBuilder(with_pip=True).create(environment)
     run_command([python, "-c", "import sys; assert sys.version_info >= (3, 11), 'Python 3.11+ required'"], ui, "Checking virtual-environment Python")
     run_command([python, "-m", "pip", "--isolated", "--disable-pip-version-check", "install",
-                 "--index-url", "https://pypi.org/simple", "-r", root / "requirements.txt"], ui, "Installing Python requirements from PyPI")
+                 "--index-url", "https://pypi.org/simple", "-r", root / "scripts" / "requirements.txt"], ui, "Installing Python requirements from PyPI")
     run_command([python, "-m", "pip", "check"], ui, "Checking installed dependency compatibility")
     run_command([python, "-c", "import streamlit"], ui, "Checking Streamlit import")
     return python

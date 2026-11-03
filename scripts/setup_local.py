@@ -1,6 +1,6 @@
 """Interactive Windows/macOS bootstrap. Requires Python 3.11.8+; no UI packages.
 
-Run: py setup_local.py (Windows) or python3 setup_local.py (macOS).
+Run from the repository: py -m scripts.setup_local (Windows) or python3 -m scripts.setup_local (macOS).
 Run with --serve to start the previously installed project model server.
 """
 
@@ -12,13 +12,13 @@ import tarfile
 import tempfile
 import zipfile
 
-from setup_support import (
+from scripts.setup_support import (
     ASSETS, BASE_URL, GIB, OLLAMA_VERSION, ROOT, LocalModel, Model, SetupError,
     cached_runtime, check_space, detect_hardware, inspect_models, install_python,
     install_runtime, model_server, prepare_model, recommend_model, runtime_directory,
     supported_runtime, verify_model_reference,
 )
-from setup_tui import Cancelled, TerminalUI
+from scripts.setup_tui import Cancelled, TerminalUI
 
 
 def hardware_summary(hardware):
@@ -58,7 +58,7 @@ def choose_model(ui, root, hardware):
 
 def show_plan(ui, root, hardware, selection):
     ui.page("Recommended downloads for your machine configuration", hardware_summary(hardware), f"Project: {root}")
-    requirements = [line.strip() for line in (root / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    requirements = [line.strip() for line in (root / "scripts" / "requirements.txt").read_text(encoding="utf-8").splitlines()
                     if line.strip() and not line.lstrip().startswith("#")]
     rows = [("Python requirements + dependencies (PyPI)", "Size varies; existing packages reused", ".venv/ in project")]
     if selection:
@@ -134,10 +134,10 @@ def setup(ui, root=ROOT):
         temporary.replace(target)
     ui.page("Installation complete", f"Python environment: {python}",
             "The Streamlit app still displays extractive evidence; local generation is not integrated yet.",
-            "Activate .venv and run: python -m streamlit run app.py")
+            "Activate .venv and run from the repository: python -m streamlit run docs_radar/app.py")
     if selection:
         ui.text(f"Model installed: {tag}\nDigest: {digest}\nGeneration has NOT been smoke-tested. "
-                "Start its local-only server with: python setup_local.py --serve\n"
+                "Start its local-only server with: python -m scripts.setup_local --serve\n"
                 "The setup server has been stopped; no background service was installed.")
     ui.draw()
     return True
@@ -173,7 +173,7 @@ def main():
                 elif not sys.argv[1:]:
                     setup(ui)
                 else:
-                    raise SetupError("Run setup_local.py without arguments, or with --serve.")
+                    raise SetupError("Run python -m scripts.setup_local from the repository, without arguments or with --serve.")
                 return 0
             except (Cancelled, KeyboardInterrupt):
                 ui.page("Cancelled", "Active child processes have been stopped. Existing models were not deleted; rerun to resume setup.")

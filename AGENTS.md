@@ -91,7 +91,10 @@ Windows is today's development machine, not the only supported target: a fresh m
 ### Cross-platform implementation requirements
 
 - Keep application logic in shared Python code using portable paths, such as `pathlib`, rather than hardcoded drive letters, usernames, or platform-specific shell commands.
-- Treat `start.cmd` as a Windows convenience only; the app and tests must also run through the documented Python commands on macOS.
+- Treat `scripts/start.cmd` as a Windows convenience only; the app and tests must also run through the documented Python commands on macOS.
+Application modules live in `docs_radar/`, setup/maintenance tools and `scripts/requirements.txt` in `scripts/`, and all tests in `tests/`.
+Run package tools from the repository root with `python -m scripts.setup_local` or `python -m docs_radar.<tool>`; launch the UI with `python -m streamlit run docs_radar/app.py`.
+Keep `content/`, `data/`, and frozen `evals/` paths stable when reorganizing code.
 - Keep Python dependency installation reproducible from shared requirements; use environment markers for genuinely OS-specific dependencies rather than copying a Windows-only environment freeze into universal setup instructions.
 - Recreate virtual environments per machine; never copy `.venv`, native executables, or installed packages between Windows and macOS.
 - Separate shared application code from native runtime distribution: the terminal installer uses official, checksum-pinned Windows or macOS Ollama archives, with the same local HTTP API contract for application code.

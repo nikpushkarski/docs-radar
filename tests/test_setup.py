@@ -15,10 +15,10 @@ import unittest
 from unittest.mock import Mock, patch
 import zipfile
 
-import setup_local as app
-import setup_support as support
-import setup_tui
-from setup_tui import Cancelled, TerminalUI, safe_text
+from scripts import setup_local as app
+from scripts import setup_support as support
+from scripts import setup_tui
+from scripts.setup_tui import Cancelled, TerminalUI, safe_text
 
 
 WINDOWS = support.Hardware("Windows", "amd64", "10.0.26200", 64 * support.GIB,
@@ -265,7 +265,8 @@ class ConsentFlowTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        (self.root / "requirements.txt").write_text("streamlit==1.66.1\n", encoding="utf-8")
+        (self.root / "scripts").mkdir()
+        (self.root / "scripts" / "requirements.txt").write_text("streamlit==1.66.1\n", encoding="utf-8")
         self.stack = ExitStack()
         self.addCleanup(self.stack.close)
         self.operations = {}
@@ -564,7 +565,7 @@ class MutationSafetyTests(unittest.TestCase):
         install = next(command for command in commands if "install" in command)
         self.assertIn("--isolated", install)
         self.assertIn("https://pypi.org/simple", install)
-        self.assertEqual(install[-1], self.root / "requirements.txt")
+        self.assertEqual(install[-1], self.root / "scripts" / "requirements.txt")
 
     def test_cancellation_stops_active_package_process(self):
         ui = FakeUI()

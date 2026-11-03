@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import unittest
 
-from validate_source import validate_source
+from docs_radar.validate_source import validate_source
 
 
 ROOT = Path(__file__).resolve().parents[1]

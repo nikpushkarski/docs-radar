@@ -4,8 +4,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from approvals import load_approvals, record_approval
-from retrieval import retrieve
+from docs_radar.approvals import load_approvals, record_approval
+from docs_radar.retrieval import retrieve
 
 
 ROOT = Path(__file__).resolve().parents[1]

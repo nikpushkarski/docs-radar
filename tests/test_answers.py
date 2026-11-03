@@ -7,10 +7,10 @@ from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
 
-from answers import answer
-from approvals import load_approvals, record_approval
-from retrieval import load_workspace
-from topic_metadata import split_topic
+from docs_radar.answers import answer
+from docs_radar.approvals import load_approvals, record_approval
+from docs_radar.retrieval import load_workspace
+from docs_radar.topic_metadata import split_topic
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,7 +77,7 @@ class AnswerPipelineTest(WorkspaceTestCase):
             "Did our provider migrate our data?",
             "Is my transfer complete?",
         ):
-            with self.subTest(question=question), patch("answers.retrieve") as retrieval:
+            with self.subTest(question=question), patch("docs_radar.answers.retrieve") as retrieval:
                 result = self.ask(question)
                 self.assertEqual(result["status"], "abstain")
                 self.assertEqual(result["reason"], "account_status_unavailable")
@@ -129,7 +129,7 @@ class AnswerPipelineTest(WorkspaceTestCase):
         self.assertEqual(result["citations"], [])
 
     def test_load_failure_is_reported(self):
-        with patch("answers.load_workspace", side_effect=OSError("test-only load failure")):
+        with patch("docs_radar.answers.load_workspace", side_effect=OSError("test-only load failure")):
             result = answer(QUESTION, "Providers", "2026-11-01")
         self.assertEqual(result["status"], "error")
         self.assertEqual(result["reason"], "workspace_error")
@@ -143,7 +143,7 @@ class AnswerPipelineTest(WorkspaceTestCase):
 
 class AnswerUiTest(WorkspaceTestCase):
     def submit(self, question=QUESTION, audience="Providers"):
-        app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=10).run()
+        app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=10).run()
         app.text_input[0].input(question)
         app.selectbox[0].select(audience)
         app.date_input[0].set_value(date(2026, 11, 1))
@@ -153,19 +153,19 @@ class AnswerUiTest(WorkspaceTestCase):
 
     def test_ui_displays_extracts_and_source_links(self):
         self.approve()
-        with patch("answers.load_workspace", return_value=self.workspace):
+        with patch("docs_radar.answers.load_workspace", return_value=self.workspace):
             app = self.submit()
         self.assertTrue(any("Extractive mode" in element.value for element in app.info))
         self.assertTrue(any("place new lab orders through Fullscript" in element.value for element in app.text))
         self.assertGreater(len(app.get("link_button")), 0)
 
     def test_ui_explains_no_approval(self):
-        with patch("answers.load_workspace", return_value=self.workspace):
+        with patch("docs_radar.answers.load_workspace", return_value=self.workspace):
             app = self.submit()
         self.assertTrue(any("No demo-approved content" in element.value for element in app.warning))
         self.assertEqual(len(app.get("link_button")), 0)
 
     def test_ui_asks_for_audience(self):
-        with patch("answers.load_workspace", return_value=self.workspace):
+        with patch("docs_radar.answers.load_workspace", return_value=self.workspace):
             app = self.submit(audience="Choose audience")
         self.assertTrue(any("Choose Providers or Patients" in element.value for element in app.info))

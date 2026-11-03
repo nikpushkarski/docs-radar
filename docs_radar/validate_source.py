@@ -2,6 +2,9 @@ import json
 from pathlib import Path
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 def validate_source(source):
     required_fields = (
         "id", "url", "retrieved_on", "evidence_type", "summary_sha256"
@@ -22,7 +25,7 @@ def validate_source(source):
 
 if __name__ == "__main__":
     sources = json.loads(
-        Path("data/sources.json").read_text(encoding="utf-8")
+        (ROOT / "data/sources.json").read_text(encoding="utf-8")
     )
     validate_source(sources[0])
     print("First source passed validation.")

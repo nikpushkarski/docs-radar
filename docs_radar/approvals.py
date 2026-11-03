@@ -2,10 +2,10 @@ from datetime import date
 import json
 from pathlib import Path
 
-from content_fingerprint import content_fingerprint
+from docs_radar.content_fingerprint import content_fingerprint
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_approvals(path):

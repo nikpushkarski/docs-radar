@@ -4,11 +4,11 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from approvals import approval_status, load_approvals, record_approval
-from passage_selection import select_applicable_passages
-from render_topic import render_topic
-from topic_metadata import section_body, split_topic
-from topic_passages import build_topic_passages
+from docs_radar.approvals import approval_status, load_approvals, record_approval
+from docs_radar.passage_selection import select_applicable_passages
+from docs_radar.render_topic import render_topic
+from docs_radar.topic_metadata import section_body, split_topic
+from docs_radar.topic_passages import build_topic_passages
 
 
 ROOT = Path(__file__).resolve().parents[1]

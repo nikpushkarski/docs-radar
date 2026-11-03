@@ -2,10 +2,10 @@ import hashlib
 import json
 from pathlib import Path
 
-from render_topic import FACT_REFERENCE_PATTERN
+from docs_radar.render_topic import FACT_REFERENCE_PATTERN
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def content_fingerprint(text, facts):

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from content_fingerprint import content_fingerprint
+from docs_radar.content_fingerprint import content_fingerprint
 
 
 ROOT = Path(__file__).resolve().parents[1]

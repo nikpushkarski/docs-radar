@@ -2,10 +2,10 @@ import json
 from pathlib import Path
 import re
 
-from topic_metadata import split_topic
+from docs_radar.topic_metadata import split_topic
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 FACT_REFERENCE_PATTERN = re.compile(r"\{\{fact:([^{}]+)\}\}")
 
 

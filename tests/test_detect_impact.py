@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from detect_impact import preview_change
+from docs_radar.detect_impact import preview_change
 
 
 ROOT = Path(__file__).resolve().parents[1]

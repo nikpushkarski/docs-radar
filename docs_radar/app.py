@@ -2,7 +2,7 @@ from datetime import date
 
 import streamlit as st
 
-from answers import answer
+from docs_radar.answers import answer
 
 
 st.title("Docs Radar")

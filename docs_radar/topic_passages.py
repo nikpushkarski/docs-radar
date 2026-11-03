@@ -1,6 +1,6 @@
-from passage_selection import parse_date
-from render_topic import render_topic
-from topic_metadata import section_body, split_topic
+from docs_radar.passage_selection import parse_date
+from docs_radar.render_topic import render_topic
+from docs_radar.topic_metadata import section_body, split_topic
 
 
 def build_topic_passages(topic_id, text, facts, sources):

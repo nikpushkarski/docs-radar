@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from approvals import approval_status, eligible_topics, load_approvals, record_approval
+from docs_radar.approvals import approval_status, eligible_topics, load_approvals, record_approval
 
 
 ROOT = Path(__file__).resolve().parents[1]

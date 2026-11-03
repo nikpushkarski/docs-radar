@@ -7,15 +7,15 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from answers import answer
-from approvals import approval_status
+from docs_radar.answers import answer
+from docs_radar.approvals import approval_status
 from evals.suite import (
     ROOT, checked_path, load_suite, materialize_fixture, prepare_case,
     run_case, validate_inputs, verify_manifest,
 )
-from passage_selection import select_applicable_passages
-from retrieval import retrieve
-from topic_passages import build_topic_passages
+from docs_radar.passage_selection import select_applicable_passages
+from docs_radar.retrieval import retrieve
+from docs_radar.topic_passages import build_topic_passages
 
 
 class FrozenEvaluationSuiteTest(unittest.TestCase):
@@ -121,7 +121,7 @@ class FrozenEvaluationSuiteTest(unittest.TestCase):
                     result = retrieve(*args, **kwargs)
                     observed.append(deepcopy(result))
                     return result  # The real result, not a manufactured answer.
-                with patch("answers.retrieve", side_effect=observe):
+                with patch("docs_radar.answers.retrieve", side_effect=observe):
                     output = run_case(case_id)
                 self.assertEqual(len(observed), 1)
                 self.assertEqual(observed[0]["status"], "retrieved")
@@ -151,7 +151,7 @@ class FrozenEvaluationSuiteTest(unittest.TestCase):
         _, first = prepare_case("Q01")
         first["topics"].clear()
         first["approvals"].clear()
-        with patch("answers.load_workspace", side_effect=AssertionError("Do not load live corpus")):
+        with patch("docs_radar.answers.load_workspace", side_effect=AssertionError("Do not load live corpus")):
             run_case("Q03")
         _, second = prepare_case("Q01")
         self.assertTrue(second["topics"])

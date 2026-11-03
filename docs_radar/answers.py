@@ -4,8 +4,8 @@ import json
 import re
 from urllib.parse import urlparse
 
-from passage_selection import parse_date
-from retrieval import load_workspace, retrieve
+from docs_radar.passage_selection import parse_date
+from docs_radar.retrieval import load_workspace, retrieve
 
 
 # Narrow, explicit handling of account-specific transfer-status questions.

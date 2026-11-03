@@ -6,8 +6,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from approvals import load_approvals, record_approval
-from retrieval import retrieve
+from docs_radar.approvals import load_approvals, record_approval
+from docs_radar.retrieval import retrieve
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,7 +98,7 @@ class RetrievalTest(unittest.TestCase):
 
     def test_today_default_is_resolved_and_recorded(self):
         self.approve()
-        with patch("retrieval.date") as clock:
+        with patch("docs_radar.retrieval.date") as clock:
             clock.today.return_value = date(2026, 11, 1)
             result = self.ask(reference_date=None)
         self.assertEqual(result["reference_date"], "2026-11-01")

@@ -1,7 +1,7 @@
 from copy import deepcopy
 import unittest
 
-from passage_selection import select_applicable_passages
+from docs_radar.passage_selection import select_applicable_passages
 
 
 class PassageSelectionTest(unittest.TestCase):

@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import unittest
 
-from render_topic import render_topic
+from docs_radar.render_topic import render_topic
 
 
 ROOT = Path(__file__).resolve().parents[1]

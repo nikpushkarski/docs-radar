@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from answers import answer
-from approvals import load_approvals, record_approval
-from content_fingerprint import content_fingerprint
-from passage_selection import parse_date
-from topic_passages import build_topic_passages
+from docs_radar.answers import answer
+from docs_radar.approvals import load_approvals, record_approval
+from docs_radar.content_fingerprint import content_fingerprint
+from docs_radar.passage_selection import parse_date
+from docs_radar.topic_passages import build_topic_passages
 
 
 ROOT = Path(__file__).resolve().parent
