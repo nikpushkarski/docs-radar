@@ -41,6 +41,40 @@ class ViewTests(unittest.TestCase):
         self.assertFalse(any('<del ' in item.value for item in app.markdown))
         self.assertEqual({path: path.read_bytes() for path in paths}, before)
 
+    def test_approval_and_simulated_impact_are_separate_and_explained(self):
+        app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=15).run()
+        self.assertFalse(app.exception)
+        table = next(item.value for item in app.dataframe if "Approval for answers" in item.value.columns)
+        rows = {row['Document']: row for row in table.to_dict('records')}
+        expected = {
+            'patient-unpaid-orders.md': ('Approved', 'No'),
+            'provider-migration-checklist.md': ('Approved', 'Yes'),
+            'rupa-view-only.md': ('Not approved — no review recorded', 'Yes'),
+        }
+        for name, (approval, impact) in expected.items():
+            with self.subTest(topic=name):
+                self.assertEqual(rows[name]['Approval for answers'], approval)
+                self.assertEqual(rows[name]['Affected by simulated change?'], impact)
+                next(widget for widget in app.selectbox if widget.label == 'Topic to inspect').select(name).run()
+                self.assertFalse(app.exception)
+                self.assertTrue(any(f'Approval for answers: {approval}. Affected by simulated change: {impact}.' == item.value for item in app.info))
+        self.assertTrue(any('A simulated preview does not change approval' in item.value for item in app.caption))
+
+    def test_nonapproved_states_keep_useful_plain_language_reasons(self):
+        labels = {
+            'changed': 'Needs reapproval — content or facts changed',
+            'not_approved': 'Not approved — approval inactive',
+            'invalid_approval': 'Not approved — invalid approval record',
+            'invalid_content': 'Not approved — invalid content or fact references',
+        }
+        for status, label in labels.items():
+            with self.subTest(status=status), patch('docs_radar.approvals.approval_status', return_value=status):
+                app = AppTest.from_file(str(ROOT / 'docs_radar/app.py'), default_timeout=15).run()
+                self.assertFalse(app.exception)
+                table = next(item.value for item in app.dataframe if 'Approval for answers' in item.value.columns)
+                self.assertEqual(set(table['Approval for answers']), {label})
+                self.assertEqual(set(table['Affected by simulated change?']), {'Yes', 'No'})
+
     def test_default_requires_no_model_and_model_output_is_labelled_extractive(self):
         import json
         from datetime import date

@@ -104,10 +104,33 @@ def content_view():
     st.dataframe(affected, hide_index=True)
 
     st.subheader("Topic review and draft correction")
-    states = [{"topic": topic_id, "eligibility": approval_status(topic_id, text, workspace["facts"], workspace["approvals"])}
-              for topic_id, text in sorted(workspace["topics"].items())]
+    approval_labels = {
+        "eligible": "Approved",
+        "no_approval": "Not approved — no review recorded",
+        "not_approved": "Not approved — approval inactive",
+        "changed": "Needs reapproval — content or facts changed",
+        "invalid_approval": "Not approved — invalid approval record",
+        "invalid_content": "Not approved — invalid content or fact references",
+    }
+    affected_ids = {item["topic_id"] for item in affected}
+    states = [{
+        "Document": topic_id,
+        "Approval for answers": approval_labels.get(
+            approval_status(topic_id, text, workspace["facts"], workspace["approvals"]),
+            "Not approved — unknown review status"),
+        "Affected by simulated change?": "Yes" if topic_id in affected_ids else "No",
+    } for topic_id, text in sorted(workspace["topics"].items())]
+    st.caption("Approval controls whether the current version may supply answers; audience and date checks still apply. Change impact identifies documents that reference the simulated fact, including unapproved drafts.")
     st.dataframe(states, hide_index=True)
+    st.caption("A simulated preview does not change approval. Changing actual document text or a referenced fact requires reapproval.")
     topic_id = st.selectbox("Topic to inspect", sorted(workspace["topics"]))
+    selected = next(row for row in states if row["Document"] == topic_id)
+    st.info(f"Approval for answers: {selected['Approval for answers']}. "
+            f"Affected by simulated change: {selected['Affected by simulated change?']}.")
+    if topic_id in affected_ids:
+        st.caption("The preview below highlights this document's reference to the changed fact—not an approval problem. Unapproved documents can need updates too.")
+    else:
+        st.caption("This document does not reference the changed fact, so this simulation has no changes to highlight—regardless of approval status.")
     text = workspace["topics"][topic_id]
     fingerprint = content_fingerprint(text, workspace["facts"])
     snapshot_key = "review_snapshot:" + topic_id
