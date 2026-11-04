@@ -278,6 +278,8 @@ class ConsentFlowTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         (self.root / "scripts").mkdir()
         (self.root / "scripts" / "requirements.txt").write_text("streamlit==1.66.1\n", encoding="utf-8")
+        (self.root / "scripts" / "requirements-model.txt").write_text(
+            "-r requirements.txt\nlangchain-ollama==1.1.0\n", encoding="utf-8")
         self.stack = ExitStack()
         self.addCleanup(self.stack.close)
         self.operations = {}
@@ -333,6 +335,41 @@ class ConsentFlowTests(unittest.TestCase):
         self.assertFalse(record["generation_tested"])
         self.assertEqual(record["base_url"], support.BASE_URL)
         self.assertTrue(self.server_stopped)
+        self.operations["install_python"].assert_called_once_with(self.root, ui, with_model=True)
+        plan = str(ui.events[:kinds.index("confirm")])
+        self.assertIn("Local-model Python integration (PyPI)", plan)
+        self.assertIn("langchain-ollama==1.1.0", plan)
+        self.assertIn("local-model Python dependencies are installed", str(ui.events))
+        self.assertNotIn("requires scripts/requirements-model.txt", str(ui.events))
+
+    def test_model_consent_declined_never_installs_dependencies_or_weights(self):
+        for existing in (False, True):
+            with self.subTest(existing=existing):
+                if existing:
+                    gguf(self.root / "models" / "existing.gguf")
+                ui = FakeUI([1], consent=False)
+                self.assertFalse(app.setup(ui, self.root))
+                self.assertIn("Local-model Python integration (PyPI)", str(ui.events))
+                for name in ("install_python", "install_runtime", "verify_model_reference", "prepare_model"):
+                    self.operations[name].assert_not_called()
+                self.server.assert_not_called()
+
+    def test_model_dependency_failure_does_not_install_runtime_or_report_success(self):
+        self.operations["install_python"].side_effect = support.SetupError("dependency install failed")
+        ui = FakeUI([1])
+        with self.assertRaisesRegex(support.SetupError, "dependency install failed"):
+            app.setup(ui, self.root)
+        self.operations["install_runtime"].assert_not_called()
+        self.server.assert_not_called()
+        self.assertFalse((self.root / "models" / "setup.json").exists())
+        self.assertNotIn("Installation complete", str(ui.events))
+
+    def test_macos_model_setup_also_installs_integration(self):
+        self.operations["detect_hardware"].return_value = replace(
+            WINDOWS, system="Darwin", architecture="arm64", os_version="14.5")
+        ui = FakeUI([1])
+        self.assertTrue(app.setup(ui, self.root))
+        self.operations["install_python"].assert_called_once_with(self.root, ui, with_model=True)
 
     def test_existing_gguf_can_be_selected_without_new_model_download(self):
         path = gguf(self.root / "models" / "existing.gguf")
@@ -345,12 +382,15 @@ class ConsentFlowTests(unittest.TestCase):
         self.assertEqual(selection.path, path)
         self.assertIn("Continue with already existing existing.gguf", str(ui.events))
         self.assertTrue(path.exists())
+        self.operations["install_python"].assert_called_once_with(self.root, ui, with_model=True)
 
     def test_existing_cache_can_be_reused(self):
         manifest(self.root / "models")
-        app.setup(FakeUI([1]), self.root)
+        ui = FakeUI([1])
+        app.setup(ui, self.root)
         self.operations["verify_model_reference"].assert_not_called()
         self.assertEqual(self.operations["prepare_model"].call_args.args[2].kind, "ollama")
+        self.operations["install_python"].assert_called_once_with(self.root, ui, with_model=True)
 
     def test_existing_model_can_be_bypassed_for_hardware_recommendation(self):
         path = gguf(self.root / "models" / "existing.gguf")
@@ -359,8 +399,11 @@ class ConsentFlowTests(unittest.TestCase):
         self.operations["install_python"].assert_not_called()
 
     def test_default_extractive_mode_skips_every_model_operation(self):
-        self.assertTrue(app.setup(FakeUI([0]), self.root))
-        self.operations["install_python"].assert_called_once()
+        ui = FakeUI([0])
+        self.assertTrue(app.setup(ui, self.root))
+        self.operations["install_python"].assert_called_once_with(self.root, ui, with_model=False)
+        self.assertNotIn("langchain-ollama", str(ui.events))
+        self.assertNotIn("Local-model Python integration (PyPI)", str(ui.events))
         self.operations["install_runtime"].assert_not_called()
         self.operations["verify_model_reference"].assert_not_called()
         self.server.assert_not_called()
@@ -590,6 +633,38 @@ class MutationSafetyTests(unittest.TestCase):
         self.assertIn("--isolated", install)
         self.assertIn("https://pypi.org/simple", install)
         self.assertEqual(install[-1], self.root / "scripts" / "requirements.txt")
+
+    def test_model_python_install_uses_combined_requirements_and_visible_progress(self):
+        python = self.root / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        python.parent.mkdir(parents=True)
+        python.write_bytes(b"fixture, never launched")
+        ui = TerminalUI(output=io.StringIO())
+        process = Mock()
+        process.poll.return_value = 0
+        process.returncode = 0
+        with patch.object(support.subprocess, "Popen", return_value=process) as start:
+            self.assertEqual(support.install_python(self.root, ui, with_model=True), python)
+        commands = [call.args[0] for call in start.call_args_list]
+        self.assertTrue(all(command[0] == str(python) for command in commands))
+        installs = [command for command in commands if "install" in command]
+        self.assertEqual(len(installs), 1)
+        self.assertEqual(installs[0][-1], str(self.root / "scripts" / "requirements-model.txt"))
+        self.assertIn("--isolated", installs[0])
+        self.assertIn("https://pypi.org/simple", installs[0])
+        self.assertIn([str(python), "-m", "pip", "check"], commands)
+        self.assertIn([str(python), "-c", "from langchain_ollama import ChatOllama"], commands)
+        progress = ui.output.getvalue()
+        self.assertIn("Installing app + local-model Python dependencies from PyPI", progress)
+        self.assertIn("Checking local-model integration import", progress)
+
+    def test_failed_model_integration_import_is_not_reported_as_installed(self):
+        python = self.root / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        python.parent.mkdir(parents=True)
+        python.write_bytes(b"fixture, never launched")
+        with patch.object(support, "run_command", side_effect=[None, None, None, None,
+                          support.SetupError("integration import failed")]):
+            with self.assertRaisesRegex(support.SetupError, "integration import failed"):
+                support.install_python(self.root, FakeUI(), with_model=True)
 
     def test_cancellation_stops_active_package_process(self):
         ui = FakeUI()

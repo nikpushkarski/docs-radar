@@ -389,7 +389,7 @@ def run_command(args, ui, label, **kwargs):
             raise SetupError(label + " failed:\n" + detail)
 
 
-def install_python(root, ui):
+def install_python(root, ui, *, with_model=False):
     environment = root / ".venv"
     python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     if environment.exists() and not python.is_file():
@@ -398,10 +398,15 @@ def install_python(root, ui):
         ui.status("Creating this machine's Python virtual environment...")
         venv.EnvBuilder(with_pip=True).create(environment)
     run_command([python, "-c", "import sys; assert sys.version_info >= (3, 11), 'Python 3.11+ required'"], ui, "Checking virtual-environment Python")
+    # Model requirements include the base app and its shared pinned constraints.
+    requirements = "requirements-model.txt" if with_model else "requirements.txt"
+    label = "Installing app + local-model Python dependencies from PyPI" if with_model else "Installing Python requirements from PyPI"
     run_command([python, "-m", "pip", "--isolated", "--disable-pip-version-check", "install",
-                 "--index-url", "https://pypi.org/simple", "-r", root / "scripts" / "requirements.txt"], ui, "Installing Python requirements from PyPI")
+                 "--index-url", "https://pypi.org/simple", "-r", root / "scripts" / requirements], ui, label)
     run_command([python, "-m", "pip", "check"], ui, "Checking installed dependency compatibility")
     run_command([python, "-c", "import streamlit"], ui, "Checking Streamlit import")
+    if with_model:
+        run_command([python, "-c", "from langchain_ollama import ChatOllama"], ui, "Checking local-model integration import")
     return python
 
 

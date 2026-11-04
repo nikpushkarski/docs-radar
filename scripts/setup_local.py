@@ -64,6 +64,7 @@ def show_plan(ui, root, hardware, selection):
                     if line.strip() and not line.lstrip().startswith("#")]
     rows = [("Python requirements + dependencies (PyPI)", "Size varies; existing packages reused", ".venv/ in project")]
     if selection:
+        rows.append(("Local-model Python integration (PyPI)", "Size varies; existing packages reused", ".venv/ in project"))
         if cached_runtime(hardware):
             rows.append(("Ollama " + OLLAMA_VERSION, "Already installed; no runtime download", str(runtime_directory(hardware))))
         else:
@@ -76,6 +77,10 @@ def show_plan(ui, root, hardware, selection):
     ui.table(("Download / reuse", "Transfer / licence", "Destination"), rows)
     ui.text("Python requirements: " + ", ".join(requirements))
     if selection:
+        model_requirements = [line.strip() for line in (root / "scripts" / "requirements-model.txt").read_text(encoding="utf-8").splitlines()
+                              if line.strip() and not line.lstrip().startswith(("#", "-"))]
+        ui.text("Local-model Python requirements (scripts/requirements-model.txt, includes the base app): "
+                + ", ".join(model_requirements))
         ui.text("Official sources: github.com/ollama/ollama (pinned standalone archive); registry.ollama.ai (model). "
                 f"Archive staging: {tempfile.gettempdir()} (removed after use).")
         ui.text("No administrator access, global PATH edits or cloud service. Models stay Git-ignored. "
@@ -118,7 +123,7 @@ def setup(ui, root=ROOT):
     ui.page("Installing the approved downloads", "Ctrl+C cancels. Completed files are kept for reruns; existing models are never deleted.")
     if isinstance(selection, Model):
         verify_model_reference(selection)
-    python = install_python(root, ui)
+    python = install_python(root, ui, with_model=selection is not None)
     if selection:
         binary = install_runtime(hardware, ui)
         with model_server(binary, root, ui):
@@ -135,7 +140,8 @@ def setup(ui, root=ROOT):
         temporary.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
         temporary.replace(target)
     ui.page("Installation complete", f"Python environment: {python}",
-            "The app defaults to extractive evidence; optional model selection requires scripts/requirements-model.txt.",
+            "The app defaults to extractive evidence; local-model Python dependencies are installed."
+            if selection else "The extractive app is installed; no local-model dependencies were requested.",
             "Activate .venv and run from the repository: python -m streamlit run docs_radar/app.py")
     if selection:
         ui.text(f"Model installed: {tag}\nDigest: {digest}\nModel selection has NOT been smoke-tested. "
@@ -156,7 +162,7 @@ def serve(ui, root=ROOT):
     if not selected or hashlib.sha256(selected.path.read_bytes()).hexdigest() != record.get("model_digest"):
         raise SetupError("The configured local model is missing, incomplete or changed. Rerun setup to select or import a model.")
     ui.page("Project model server", f"Model: {record['model']}\nLocal API: {BASE_URL}\nCloud disabled; context: {CONTEXT_TOKENS} tokens; idle models unload immediately.",
-            "Install scripts/requirements-model.txt, then select Model-selected excerpts and this tag in the app. "
+            "Select Model-selected excerpts and this tag in the app. "
             "Keep this terminal open; stopping it terminates only this server.")
     with model_server(binary, root, ui):
         ui.choose("Server ready", ["Stop the project model server and exit"])

@@ -72,7 +72,9 @@ Run from the project folder in an interactive terminal:
 Use Up/Down and Enter to choose an existing model, request a hardware recommendation, or install only the extractive app.
 The installer shows a paged download table, then asks `Start downloading? [Y/n]`; Enter defaults to Yes on the final page.
 No network requests, package installations or model downloads occur before consent.
-Yes creates/reuses `.venv`, installs `scripts/requirements.txt` and its dependencies, and optionally installs a pinned Ollama runtime and model.
+Yes creates/reuses `.venv` and installs `scripts/requirements.txt` and its dependencies.
+Selecting a new or existing model also installs `scripts/requirements-model.txt` automatically, alongside any missing pinned Ollama runtime and the selected model.
+The download plan lists the model integration before consent; installation progress identifies its Python dependencies and import check.
 N starts no downloads and shows the manual model folder and rerun instructions.
 Esc or Ctrl+C cancels; existing model files are not deleted.
 
@@ -126,7 +128,9 @@ Optional model selection uses `docs_radar/generation.py`: approved retrieval →
 Python retains the source wording and registered citations; the model cannot write or shorten guidance.
 Selection can still be irrelevant or incomplete; this is not semantic-entailment verification or free-form generation.
 The original pinned `qwen3:4b` was tested; no custom template or larger model is required.
-After explicitly choosing to download optional dependencies, run `python -m pip install -r scripts/requirements-model.txt` in the activated environment on either Windows or macOS.
+On Windows and macOS, choosing a model in the installer also installs its Python integration; no separate pip command is needed.
+For an installation made with the older setup script, rerun setup and select the existing model to install missing dependencies without downloading the weights again.
+For manual setup only, run `python -m pip install -r scripts/requirements-model.txt` in the activated environment.
 The LangChain integration and its Python 3.13 dependency closure are pinned; `pip check` passed on Windows.
 The installer uses official standalone archives so installation stays in the terminal, without administrator access, a GUI installer or global PATH changes.
 It keeps a separate runtime rather than modifying an existing system-wide Ollama installation.
