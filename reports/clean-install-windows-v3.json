@@ -1,0 +1,132 @@
+{
+  "platform": "Windows",
+  "created_at": "2026-11-04T00:07:08.853045+00:00",
+  "steps": [
+    {
+      "name": "clone",
+      "exit_code": 0
+    },
+    {
+      "name": "create_new_venv",
+      "exit_code": 0
+    },
+    {
+      "name": "install_base_requirements",
+      "exit_code": 0
+    },
+    {
+      "name": "pip_check",
+      "exit_code": 0
+    },
+    {
+      "name": "model_free_environment",
+      "exit_code": 0
+    },
+    {
+      "name": "npm_ci_offline",
+      "exit_code": 0
+    },
+    {
+      "name": "npm_tree",
+      "exit_code": 0
+    },
+    {
+      "name": "full_quality_gate",
+      "exit_code": 0
+    },
+    {
+      "name": "promptfoo_smoke",
+      "exit_code": 0
+    },
+    {
+      "name": "promptfoo_negative",
+      "exit_code": 100
+    }
+  ],
+  "native_macos": "not_run",
+  "models_downloaded": 0,
+  "source_commit": "de0d6bd75a46333e30aa3f8e8fa996915892171d",
+  "http_startup": {
+    "status": 200,
+    "body": "ok"
+  },
+  "app_server_stopped": true,
+  "model_folder_absent": true,
+  "tracked_tree_unchanged": true,
+  "gate": {
+    "version": "v3",
+    "regression_injected": false,
+    "provenance": {
+      "commit": "de0d6bd75a46333e30aa3f8e8fa996915892171d",
+      "dirty": false,
+      "code_hash": "ddb364aeab450c32b100cd9b51cbd9569ec7263cb80885f5560402eabca6d61a"
+    },
+    "steps": [
+      {
+        "name": "unit_tests",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "name": "frozen_v2_integrity",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "name": "selected_frozen_integrity",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "name": "quality",
+        "exit_code": 0,
+        "status": "passed"
+      },
+      {
+        "name": "promptfoo",
+        "exit_code": 0,
+        "status": "passed"
+      }
+    ],
+    "pass": true,
+    "live_model": "not_run",
+    "human_review": "not_run",
+    "hosted_ci": "not_run",
+    "evaluation_summary": {
+      "cases": 12,
+      "automated_passes": 12,
+      "source_recall_at_3_mean": 1.0,
+      "recall_case_count": 7,
+      "critical_failures": [],
+      "citation_validity": {
+        "numerator": 15,
+        "denominator": 15,
+        "value": 1.0
+      },
+      "citation_coverage": {
+        "numerator": 15,
+        "denominator": 15,
+        "value": 1.0
+      },
+      "manual_citation_accuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "manual_review_coverage": {
+        "numerator": 0,
+        "denominator": 15,
+        "value": 0.0
+      },
+      "automated_gate_pass": true,
+      "human_review_complete": false
+    },
+    "regression": {
+      "compatible": true,
+      "new_critical_failures": [],
+      "pass": true
+    }
+  },
+  "status": "passed",
+  "npm_install_note": "Fresh npm ci --offline --ignore-scripts succeeded; npm ls still reports 15 packages as extraneous. No pruning or lock rewrite."
+}

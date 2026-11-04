@@ -3,10 +3,11 @@
 **Owner:** Nik Pushkarski
 **Prepared:** November 1, 2026
 **Target:** A working local app with change-impact detection and evidence-grounded answers.
-**Status:** Implemented through the final documentation step where local prerequisites permit; not all acceptance checks are complete.
-T13/T14 have real local execution evidence and T15 has installed Promptfoo checks.
-At Nik's request, the optional model now selects excerpts instead of generating guidance; no larger model is required.
-T17's full quality gate remains red on Q02/Q05 and recall, and T18 human support review is incomplete.
+**Status:** Local implementation and v3 automated acceptance are complete on Windows; human citation-support review remains outstanding.
+The approved corpus passes 12/12 in extractive and actual lightweight selection modes; the full gate demonstrates 0 → 1 → 0.
+A fresh model-free Windows checkout and real Edge workflow pass.
+At Nik's request, the optional model selects excerpts instead of generating guidance; no larger model is required.
+Native macOS execution, hosted CI, and the complete interactive TUI download flow are unverified.
 See `PROGRESS.md` and `reports/README.md` for actual checks and limitations.
 
 **Companion:** `AGENTS.md` governs how Codex teaches and implements this plan.
@@ -157,7 +158,8 @@ Document both setup paths, but report macOS as unverified until its installation
 
 Local generation avoids a metered cloud-model dependency, but performance depends on the machine.
 Ollama 0.40.14 and pinned qwen3:4b are installed and have produced actual local responses on Windows.
-The small-model selection adapter completes six model calls in the frozen suite; six other cases stop at deterministic gates.
+The v3 selection suite completes seven real model calls; five other cases stop at deterministic gates.
+All 12 cases pass their deterministic checks; human support accuracy remains unmeasured.
 The prior zero-call live attempt remains a historical report, not current installation status.
 The earlier 8B download is unused, excluded by the resource policy, and not a required dependency.
 Check RAM, available GPU memory, disk space, model download size, and licence before downloading, and record the exact runtime/model identifiers after installation.
@@ -220,18 +222,19 @@ This status records execution, not changed acceptance criteria.
 | T01–T12 | Complete at previously recorded scope |
 | T13 | Real Windows Ollama/4B smoke recorded at 2355b5e; extractive mode remains the default |
 | T14 | Complete for the explicitly narrowed model-selection path: real approved-corpus call, strict parsing, intact excerpts, bounded resources, explicit errors |
-| T15 | Actual Promptfoo smoke passed and negative control failed as intended; installed version and transitive lock recorded |
-| T16 | Metrics and immutable observed baseline implemented; human citation accuracy remains unmeasured |
-| T17 | Local gate and isolated fail/recover control implemented; full suite and actual Promptfoo still fail Q02/Q05; Recall@3 remains 6/7 |
-| T18 | All 12 cases executed through the selection path; six real calls, 10/12 deterministic passes, no human support review or full quality pass |
-| T19 | Three functional views implemented; Windows AppTest and real Edge smoke checked |
-| T21 | Windows/macOS instructions updated; Python 3.13 constraints and npm lock recorded; macOS runtime and clean-checkout installation remain unverified |
+| T15 | Actual Promptfoo smoke and full v3 suite pass; negative control fails as intended, including in a clean checkout |
+| T16 | Metrics, preserved historical baseline, separate v3 baseline, and hash-bound human review export implemented; human accuracy unmeasured |
+| T17 | Full local gate passes; full-suite regression/repair exits 0 → 1 → 0, including actual Promptfoo; Recall@3 7/7 |
+| T18 | Actual 4B selection suite: 12/12, seven real calls and five deterministic no-call cases; no resident model afterward; human review still 0/15 |
+| T19 | Three functional views, review export, AppTest, and refreshed real Edge workflow checked; no approvals submitted by browser automation |
+| T21 | Windows/macOS instructions updated; clean model-free Windows checkout, new environment, locked npm install, full gate and HTTP startup verified; macOS runtime remains unverified |
 
-The original frozen v2 corpus and expectations are unchanged.
-Runtime fixes improved Q07/Q12 without editing the benchmark; Q02/Q05 need reviewed corpus work before the full quality gate can pass.
-`content/drafts/` contains proposed patient-payment and provider-boundary corrections, excluded from real answers pending Nik's review.
-Promoting them and creating a new evaluation-corpus version require explicit approval; frozen v2 and its baseline remain unchanged.
-No full-suite live-model quality pass, hosted-CI, or human-review claim is made.
+Nik explicitly approved the patient-payment and provider-boundary revisions and a separate v3 evaluation corpus.
+Exact revisions were promoted into `content/` and their fingerprints recorded in `data/approvals.json`.
+`evals/v3/` incorporates that public-corpus update without changing questions, expectations, thresholds, or adversarial fixtures.
+Frozen v2, its original baseline, and historical failures remain unchanged; rerunning v2 still gives 10/12.
+V3's new baseline is not a compatible same-corpus comparison with v2.
+The current full-suite live selection checks pass, but no human-review, native-macOS, hosted-CI, or free-form generation claim is made.
 
 ### Foundation and evidence
 
@@ -451,13 +454,18 @@ Keep private snapshots, credentials, virtual environments, model weights, and se
 Before claiming completion, verify:
 
 - [x] A supplied fact change flags dependent topics and leaves unrelated topics unflagged.
-- [x] Questions retrieve eligible evidence and produce cited answers or explicit clarification/abstention (not all frozen quality cases pass).
+- [x] Questions retrieve eligible evidence and produce cited excerpts or explicit clarification/abstention; all 12 current v3 deterministic cases pass.
 - [x] Approval, source attribution, audience, and date behavior are demonstrated.
 - [x] The same runtime functions serve the UI and evaluations.
 - [x] Measured results identify the exact run; unrun checks remain unrun.
-- [x] LangChain/local-model integration is backed by actual successful selection calls — excerpt rendering, not free-form generation; full quality and human review remain incomplete.
+- [x] LangChain/local-model integration is backed by seven actual successful selection calls — excerpt rendering, not free-form generation; human review remains incomplete.
 - [x] No confidential material, real patient data, fabricated approvals, or invented business impact appears.
 - [x] The app, README, and evaluation outputs distinguish real, synthetic, replayed, and unverified capabilities.
+- [x] A clean Windows checkout runs model-free with fresh Python dependencies, a locked npm install, the full gate, and loopback HTTP startup.
+- [ ] Human citation-support acceptance is recorded against exact output hashes; currently 0/15 reviewed claims per mode.
+
+Native macOS execution is not claimed; its documented setup path still needs validation on actual macOS hardware.
+Hosted CI remains intentionally disabled, with the same checks verified locally.
 
 ## References
 

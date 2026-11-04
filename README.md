@@ -32,9 +32,9 @@ Keep the default **Install extractive app only (no model)** for the quickest sta
 Use Up/Down and Enter to navigate, and review the download table before accepting.
 Open http://localhost:8501 after launching the app.
 The default app shows cited excerpts, not model-generated answers.
-The frozen quality suite currently passes 10/12 deterministic checks; Q02 patient coverage and Q05 post-recommendation guidance still fail.
-The optional 4B model-selected-excerpt path also passes 10/12; it is not free-form generation or a complete quality pass.
-Human citation-support review remains incomplete.
+The approved v3 corpus passes all **12/12** deterministic cases in both extractive and optional 4B selection modes.
+The full local quality gate passes; human citation-support review remains separate and incomplete.
+Windows clean-checkout installation is verified; native macOS execution is not.
 
 <details>
 <summary>Need more? Expand setup details, current limitations, and verification checks</summary>
@@ -43,7 +43,7 @@ Human citation-support review remains incomplete.
 <summary><strong>Local installation — Windows and macOS</strong></summary>
 
 Use Python 3.13; the terminal bootstrap accepts 3.11.8+, but other minors are not the locked installation path.
-Windows validation uses Python 3.13.17; earlier browser smoke evidence used 3.15.1.
+Windows validation uses Python 3.13.17: 238 tests, a clean model-free checkout, full local gate, and a real Edge browser workflow passed.
 macOS ARM64/Intel wheel-resolution dry runs passed, but native installation and runtime are not tested.
 Application code lives in `docs_radar/`, setup tools and requirements in `scripts/`, and all tests in `tests/`.
 Content, data, and frozen evaluation fixtures remain in `content/`, `data/`, and `evals/`.
@@ -68,7 +68,8 @@ N starts no downloads and shows the manual model folder and rerun instructions.
 Esc or Ctrl+C cancels; existing model files are not deleted.
 
 Ollama 0.40.14, the pinned 4B model, Python dependencies, and real local calls were installed/executed on Windows with consent.
-A clean-checkout end-to-end installer run and native macOS execution remain unverified.
+Clean Windows manual setup was verified with a newly created virtual environment and no model packages or weights.
+The complete interactive TUI download flow and native macOS execution have not been tested end to end.
 
 </details>
 
@@ -154,8 +155,9 @@ In **Ask and inspect**, choose **Model-selected excerpts (optional)** and enter 
 The adapter never pulls models; resource limits, missing dependencies/runtime, or invalid selections return explicit errors, not silent fallback.
 For all 12 evaluation cases, run `python -m evals.run --mode live-model --model <installed-tag>` in another activated terminal on either OS.
 This saves local provenance and outputs; human support review remains separate.
-The current Windows run completed six actual selection calls in 2.3–3.3 seconds each; eligibility/clarification/abstention gates skipped the other six.
-Both modes retain Q02/Q05 failures; human support review is still missing.
+The Windows v3 run passed 12/12: seven actual selection calls took 2.38–3.60 seconds each; deterministic gates skipped the other five.
+No model remained resident afterward.
+These timings are not a performance guarantee for another machine, and human support review is still missing.
 The older zero-call report remains historical, not current installation status.
 If the machine cannot run a model comfortably, choose the extractive app—not a larger model or hosted fallback.
 
@@ -180,10 +182,12 @@ These check metadata validation, not answer quality or factual accuracy.
 <details>
 <summary><strong>Quality checks and frozen evaluation fixtures</strong></summary>
 
-- `evals/cases.json` — 12 cases, with inputs separate from expectations.
-- `evals/fixtures/` — five isolated test workspaces.
-- `evals/manifest.json` — hashes of the frozen cases and fixtures.
+- `evals/v3/` — current frozen cases, five fixtures, and their manifest.
+- `evals/cases.json`, `evals/fixtures/`, `evals/manifest.json` — preserved historical v2.
 - `evals/suite.py` — integrity checks and a wrapper for the real answer pipeline.
+
+V3 changes only the reviewed public corpus: the approved patient passage and provider boundary correction.
+All 12 questions, expectations, thresholds, and adversarial fixtures are unchanged.
 
 After activation, run from the project folder on either platform:
 
@@ -198,34 +202,57 @@ Changes to frozen expectations or fixture content need review and a new version;
 Run these commands on either OS after activation:
 
 ```text
-python -m evals.run --baseline reports/baseline-extractive-v2.json
-python -m scripts.quality_gate --demonstrate
+python -m evals.run --baseline reports/baseline-extractive-v3.json
 python -m scripts.quality_gate
+python -m scripts.quality_gate --demonstrate
 ```
 
-The evaluator currently exits **1**: 10/12 deterministic passes, Source Recall@3 **6/7 (0.8571)** below 0.90, and Q02/Q05 failures.
-Citation validity/structural coverage are 14/14; factual support is unmeasured with 0/14 claims human-reviewed.
-The demonstration records an isolated control's exits **0 → 1 → 0**, not a full-suite pass.
-The full gate returns **1** for the known quality failures; installed Promptfoo runs the actual suite rather than being skipped.
+The v3 evaluator and full gate exit **0**: 12/12, Source Recall@3 **7/7**, and citation validity/structural coverage **15/15**.
+Factual support is unmeasured with **0/15** claims human-reviewed per mode.
+`--demonstrate` runs the full model-free gate three times: clean **0**, in-memory missing approvals **1**, repaired **0**.
+It neither edits real approvals nor alters frozen fixtures.
+The separate v3 baseline records the approved corpus update, not a same-corpus comparison with v2.
+Historical v2 still returns 10/12 and exit 1: `python -m evals.run --version v2 --baseline reports/baseline-extractive-v2.json`.
 Reports identify code, corpus, dataset and mode; `reports/README.md` explains review and comparison.
-Raw outputs and fresh local reports stay in Git-ignored `reports/local/`.
+Raw outputs stay in Git-ignored, report-specific files under `reports/local/`.
 
 Optional Promptfoo requires Node 24 LTS.
 After explicitly choosing to install its pinned package, run from the repository root on either OS:
 
 ```text
-npm ci --prefix evals
+npm ci --ignore-scripts --prefix evals
 python -m scripts.run_promptfoo
 python -m scripts.run_promptfoo --negative-control
 python -m scripts.run_promptfoo --suite
 ```
 
-The smoke should pass, the deliberately incorrect negative control should fail, and the full suite retains known quality failures.
-These CLI checks were executed on Windows: smoke exit 0, negative-control exit 100, full suite 10/12 with Q02/Q05 failing.
+Verified on Windows, including a clean checkout: smoke exit **0**, deliberate negative-control exit **100**, full v3 suite **12/12**, exit **0**.
+The locked install also succeeded offline from the local npm cache, with install scripts disabled; no model or browser payload is needed for these checks.
+Npm still labels several packages extraneous after a clean locked install; the checks pass without pruning or changing the lock.
 The launcher never downloads packages automatically and disables telemetry/update checks.
-`evals/package-lock.json` pins the declared Promptfoo dependency tree.
-A clean `npm ci` remains unverified; the existing installation includes extraneous packages.
 No hosted model, paid judge, report upload or hosted CI is configured.
+
+</details>
+
+<details>
+<summary><strong>Human citation-support review</strong></summary>
+
+Open **Quality**, select `reports/final-extractive-v3.json` or `reports/live-selection-4b-v3.json`, then expand **Review recorded citation support**.
+Read each claim beside its cited passage and source link, keeping synthetic cases separate from public evidence.
+Choose **Supported** or **Not supported**, enter your reviewer name, confirm your own review, and prepare/download the review file.
+All 15 claims start **Unreviewed**; content approval does not fill these decisions.
+On a fresh checkout, first run the evaluator, then select `reports/local/latest.json` to review your newly recorded outputs; historical raw artifacts are not shipped.
+
+Save the downloaded file as `reports/local/citation-review.json` and rerun the same mode/version with a new report path:
+
+```text
+python -m evals.run --reviews reports/local/citation-review.json --output reports/reviewed-extractive-v3.json
+```
+
+For the live report, also supply `--mode live-model --model qwen3:4b` with the project server running.
+Review is bound to exact output hashes; changed outputs are rejected instead of inheriting approval.
+Refresh Quality and select the new report under `reports/`.
+It is separate from the immutable original, and no content approval is changed.
 
 </details>
 
@@ -266,9 +293,9 @@ In **Content and changes**, inspect the rendered topic and facts before entering
 **Save draft** validates metadata and invalidates an old approval when the content changes; it never reapproves it.
 **Remove answer eligibility** returns the topic to draft.
 If a topic or referenced fact changes during review, reload before approving.
-The two files in `content/drafts/` propose the missing patient guidance and the provider boundary-date correction; they are intentionally outside the answer corpus.
-Review their wording and routing against the linked source before authorizing promotion and an explicitly versioned evaluation-corpus update.
-No real approval, frozen v2 fixture, expectation, threshold, or baseline was changed.
+Nik approved the exact revisions now in `content/patient-unpaid-orders.md` and `content/provider-migration-checklist.md`.
+Their matching fingerprints are recorded in `data/approvals.json`.
+The separately approved v3 evaluation corpus incorporates those revisions; frozen v2, its expectations, thresholds, and baseline remain intact.
 
 </details>
 
@@ -289,8 +316,9 @@ The first interval starts on that capture date; earlier historical answers are n
 The audience/date filter is tested against routing fixtures and the migration topic's actual passages, including both date boundaries.
 Passage rules live in the topic's JSON metadata block, so changing them invalidates its approval fingerprint.
 Default retrieval connects approval filtering, passage selection, and text ranking, returning excerpts rather than generated prose.
-The approved provider migration topic can supply dated excerpts; other topics remain ineligible.
-The frozen corpus still lacks patient payment passages and the required rationale after the recommended transfer date; those failures are not waived.
+The provider migration and patient-payment topics are eligible; other topics remain ineligible.
+Patient guidance includes the provider-not-transferred condition and applies through December 23, with no invented cutoff hour.
+The v3 corpus fixes the former Q02/Q05 gaps through reviewed content changes, not relaxed checks.
 Instruction-like lines are filtered from excerpt guidance after retrieval, with raw text available only in labelled inspection.
 This narrow rule is not general prompt-injection protection.
 
