@@ -1,7 +1,14 @@
 {
   "provider-migration-checklist.md": {
     "topic_id": "provider-migration-checklist.md",
-    "fingerprint": "25404156806a74763c8c1dc9841c5a19d97fb3321fcbfcfa98d7d1b0a4b7bdb2",
+    "fingerprint": "93e5cbb72be42a061964c2735872eb1e0a23cb09f79e6f0ce5a0dbc6874c9a1d",
+    "state": "demo_approved",
+    "reviewer": "Nik",
+    "approved_on": "2026-11-03"
+  },
+  "patient-unpaid-orders.md": {
+    "topic_id": "patient-unpaid-orders.md",
+    "fingerprint": "301c36d2de7620009ee7d5c4923df35e05a2cc11144cac0067b9fec8cfcab5ee",
     "state": "demo_approved",
     "reviewer": "Nik",
     "approved_on": "2026-11-03"

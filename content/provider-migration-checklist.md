@@ -54,8 +54,9 @@ Transfer your Rupa data before login access closes on {{fact:rupa-login-closure-
 
 ## After the recommended transfer date
 
-Fullscript's recommended transfer date of December 4, 2026 has passed.
-The captured schedule still gives the later login-closure date; follow the supported transfer guidance before that closure.
+The window to follow Fullscript's recommendation to transfer before December 4, 2026 has passed.
+That earlier timing was recommended to avoid disrupting patients with outstanding orders.
+Transfer your Rupa data before login access closes on {{fact:rupa-login-closure-date}}.
 
 ## On or after the closure date
 

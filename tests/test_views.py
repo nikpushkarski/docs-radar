@@ -45,6 +45,18 @@ class ViewTests(unittest.TestCase):
         report["provenance"]["test_set_hash"] = "old"
         self.assertTrue(any("test-set" in reason for reason in report_freshness(report)))
 
+    def test_fresh_checkout_prefers_current_suite_over_historical_baseline(self):
+        import tempfile
+        from evals.run import save_report
+        current, _ = evaluate()
+        historical = deepcopy(current)
+        historical["provenance"]["test_set_version"] = "v2"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            save_report(root / "reports/a-old.json", historical)
+            save_report(root / "reports/z-current.json", current)
+            self.assertEqual(next(iter(available_reports(root))), "reports/z-current.json")
+
     def test_recorded_live_attempt_is_not_current_live_evidence(self):
         report = available_reports(ROOT)["reports/live-model-attempt-v2.json"]
         self.assertIn("No complete live-model evidence", report_freshness(report))

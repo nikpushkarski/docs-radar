@@ -66,8 +66,8 @@ class MetricTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             evaluate(reviews={"Q01": {"output_hash": "stale"}})
 
-    def test_fixed_suite_records_existing_failures_without_relaxation(self):
-        report, _ = evaluate()
+    def test_historical_v2_records_existing_failures_without_relaxation(self):
+        report, _ = evaluate(version="v2")
         self.assertEqual(len(report["cases"]), 12)
         # Runtime fixes improve Q07/Q12; frozen corpus gaps still fail, not waived.
         self.assertEqual(set(report["summary"]["critical_failures"]), {"Q02", "Q05"})

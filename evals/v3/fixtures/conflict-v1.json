@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "conflict-v1",
+  "evidence_type": "synthetic",
+  "description": "Fictional evidence and test-only review state; not Fullscript guidance or Nik approval.",
+  "workspace": {
+    "topics": {
+      "synthetic-portal-a.md": "---\n{\n  \"source_id\": \"synthetic-source-a\",\n  \"source_summary_sha256\": \"d6aa26e2a352b96d8d60b4ed964359b595eea602670702b5f99997448ede3767\",\n  \"audience\": \"Providers\",\n  \"passages\": [\n    {\n      \"id\": \"ordering\",\n      \"heading\": \"Ordering\",\n      \"valid_from\": \"2026-11-01\",\n      \"valid_until\": null,\n      \"unresolved_conflict_ids\": [\n        \"synthetic-ordering-destination\"\n      ]\n    }\n  ]\n}\n---\n# Synthetic evaluation fixture\n\n## Ordering\n\nProviders must use Portal A for new lab orders, not Portal B.\n",
+      "synthetic-portal-b.md": "---\n{\n  \"source_id\": \"synthetic-source-b\",\n  \"source_summary_sha256\": \"45071115135023a9b5ae45cf7cf74df37728b5fd8953d89b9e1c2423f73692f6\",\n  \"audience\": \"Providers\",\n  \"passages\": [\n    {\n      \"id\": \"ordering\",\n      \"heading\": \"Ordering\",\n      \"valid_from\": \"2026-11-01\",\n      \"valid_until\": null,\n      \"unresolved_conflict_ids\": [\n        \"synthetic-ordering-destination\"\n      ]\n    }\n  ]\n}\n---\n# Synthetic evaluation fixture\n\n## Ordering\n\nProviders must use Portal B for new lab orders, not Portal A.\n"
+    },
+    "facts": [],
+    "sources": [
+      {
+        "id": "synthetic-source-a",
+        "title": "Synthetic evaluation source: synthetic-source-a",
+        "url": "https://example.invalid/synthetic-source-a",
+        "retrieved_on": "2026-11-01",
+        "last_modified": "2026-11-01",
+        "audience": "Providers",
+        "supporting_sections": [
+          "Ordering"
+        ],
+        "evidence_type": "synthetic_fixture",
+        "summary": "Providers must use Portal A for new lab orders, not Portal B.",
+        "summary_sha256": "d6aa26e2a352b96d8d60b4ed964359b595eea602670702b5f99997448ede3767"
+      },
+      {
+        "id": "synthetic-source-b",
+        "title": "Synthetic evaluation source: synthetic-source-b",
+        "url": "https://example.invalid/synthetic-source-b",
+        "retrieved_on": "2026-11-01",
+        "last_modified": "2026-11-01",
+        "audience": "Providers",
+        "supporting_sections": [
+          "Ordering"
+        ],
+        "evidence_type": "synthetic_fixture",
+        "summary": "Providers must use Portal B for new lab orders, not Portal A.",
+        "summary_sha256": "45071115135023a9b5ae45cf7cf74df37728b5fd8953d89b9e1c2423f73692f6"
+      }
+    ],
+    "approvals": {}
+  },
+  "approval_setup": [
+    {
+      "topic_id": "synthetic-portal-a.md",
+      "fingerprint": "dd09936d6dcae0d96aeb5ac0b0ad541dfa2d620097363ebe35a377b8b6695fe2",
+      "state": "demo_approved",
+      "reviewer": "Synthetic evaluation reviewer",
+      "approved_on": "2026-11-01"
+    },
+    {
+      "topic_id": "synthetic-portal-b.md",
+      "fingerprint": "6da26ef6ac0ae0166225bb62059462ccfaa320aa6f2d8b844bc484725ea7f1fd",
+      "state": "demo_approved",
+      "reviewer": "Synthetic evaluation reviewer",
+      "approved_on": "2026-11-01"
+    }
+  ]
+}

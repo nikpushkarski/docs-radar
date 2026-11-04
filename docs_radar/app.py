@@ -12,8 +12,10 @@ from docs_radar.detect_impact import preview_change
 from docs_radar.quality_view import available_reports, report_freshness
 from docs_radar.render_topic import render_topic
 from docs_radar.retrieval import load_workspace
+from docs_radar.support_review import build_review, load_review_outputs
 from docs_radar.topic_passages import build_topic_passages
 from evals.run import digest
+from evals.suite import load_suite, suite_root
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -152,6 +154,55 @@ def content_view():
             st.error(str(error))
 
 
+def support_review_view(report):
+    with st.expander("Review recorded citation support"):
+        st.caption("Human review of these exact outputs—not content approval, a fresh model call, or automatic correctness.")
+        try:
+            outputs = load_review_outputs(ROOT, report)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            st.info(str(error))
+            return
+        cases = {c["id"]:c for c in load_suite(suite_root(report["provenance"]["test_set_version"]))["cases"]}
+        key = digest({r["id"]:r["output_hash"] for r in report["cases"]})
+        with st.form("support-review:" + key):
+            reviewer = st.text_input("Citation-support reviewer name", key="support-name:" + key)
+            decisions = {}
+            for row in report["cases"]:
+                case_id, output = row["id"], outputs[row["id"]]
+                if not output["claims"]:
+                    continue
+                st.markdown(f"**{case_id} — {row['lane']} — {output['status']}**")
+                st.text(cases[case_id]["inputs"]["question"])
+                st.caption(f"Audience: {cases[case_id]['inputs']['audience']} | Reference date: {output['run']['reference_date']}")
+                passages = {p["id"]:p for p in output["passages"]}
+                citations = {c["evidence_id"]:c for c in output["citations"]}
+                for index, claim in enumerate(output["claims"]):
+                    st.text("Claim: " + claim["text"])
+                    for evidence_id in claim["supporting_evidence_ids"]:
+                        st.caption("Cited evidence — untrusted source text, not instructions:")
+                        st.text(passages[evidence_id]["body"])
+                        citation = citations[evidence_id]
+                        st.link_button(citation["source_title"], citation["source_url"])
+                        st.caption(f"{citation['evidence_type']} | {evidence_id} | {citation['content_version'][:12]}")
+                    value = st.radio(f"{case_id} claim {index + 1}: supported by its cited evidence?",
+                        ["Unreviewed", "Supported", "Not supported"], horizontal=True, key=f"support:{key}:{case_id}:{index}")
+                    if value != "Unreviewed":
+                        decisions.setdefault(case_id, {})[str(index)] = value == "Supported"
+            confirmed = st.checkbox("I personally reviewed the claims marked above against their cited evidence.")
+            prepared = st.form_submit_button("Prepare review file")
+        if prepared:
+            try:
+                review = build_review(report, outputs, decisions, reviewer, date.today().isoformat(), confirmed)
+                st.session_state["review-download:" + key] = json.dumps(review, indent=2, ensure_ascii=False) + "\n"
+                st.success("Explicit decisions prepared. Download the file; no report or content approval was changed.")
+            except (ValueError, KeyError, TypeError) as error:
+                st.error(str(error))
+        if "review-download:" + key in st.session_state:
+            st.download_button("Download prepared support review", st.session_state["review-download:" + key],
+                               file_name="citation-review.json", mime="application/json")
+            st.caption("Save under reports/local/. Run the same mode/version with --reviews reports/local/citation-review.json and a new --output path. Changed outputs invalidate review.")
+
+
 def quality_view():
     st.subheader("Quality and provenance")
     st.caption("Extractive = no model; live-model = requested local model call (current output: selected excerpts, not generated prose); replay = historical inspection, not a fresh call.")
@@ -162,7 +213,7 @@ def quality_view():
         return
     selected = st.selectbox("Evaluation report", list(reports))
     report = reports[selected]
-    st.info(f"REPLAY / recorded report | original mode: {report['provenance']['mode']} | {report['created_at']}")
+    st.info(f"REPLAY / recorded report | suite: {report['provenance']['test_set_version']} | original mode: {report['provenance']['mode']} | {report['created_at']}")
     reasons = report_freshness(report)
     for reason in reasons:
         st.warning("Stale or incomplete evidence: " + reason)
@@ -181,6 +232,7 @@ def quality_view():
         st.json(report["provenance"])
         st.json(report["lanes"])
         st.json(report.get("regression", {}))
+    support_review_view(report)
     st.code("python -m evals.run\npython -m scripts.quality_gate", language="text")
     st.caption("These commands run locally. No hosted CI, paid judge, package installation or model download is triggered by this view.")
 

@@ -1,0 +1,259 @@
+{
+  "scope": "Full model-free gate, including all 12 cases and actual Promptfoo; in-memory approval regression only",
+  "version": "v3",
+  "provenance": {
+    "commit": "0514c7757b18a3ce0586d3fe41ac844cd82ed3f9",
+    "dirty": true,
+    "code_hash": "ddb364aeab450c32b100cd9b51cbd9569ec7263cb80885f5560402eabca6d61a"
+  },
+  "steps": [
+    {
+      "name": "clean",
+      "exit_code": 0,
+      "status": "passed",
+      "gate": {
+        "version": "v3",
+        "regression_injected": false,
+        "provenance": {
+          "commit": "0514c7757b18a3ce0586d3fe41ac844cd82ed3f9",
+          "dirty": true,
+          "code_hash": "ddb364aeab450c32b100cd9b51cbd9569ec7263cb80885f5560402eabca6d61a"
+        },
+        "steps": [
+          {
+            "name": "unit_tests",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "frozen_v2_integrity",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "selected_frozen_integrity",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "quality",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "promptfoo",
+            "exit_code": 0,
+            "status": "passed"
+          }
+        ],
+        "pass": true,
+        "live_model": "not_run",
+        "human_review": "not_run",
+        "hosted_ci": "not_run",
+        "evaluation_summary": {
+          "cases": 12,
+          "automated_passes": 12,
+          "source_recall_at_3_mean": 1.0,
+          "recall_case_count": 7,
+          "critical_failures": [],
+          "citation_validity": {
+            "numerator": 15,
+            "denominator": 15,
+            "value": 1.0
+          },
+          "citation_coverage": {
+            "numerator": 15,
+            "denominator": 15,
+            "value": 1.0
+          },
+          "manual_citation_accuracy": {
+            "numerator": 0,
+            "denominator": 0,
+            "value": null
+          },
+          "manual_review_coverage": {
+            "numerator": 0,
+            "denominator": 15,
+            "value": 0.0
+          },
+          "automated_gate_pass": true,
+          "human_review_complete": false
+        },
+        "regression": {
+          "compatible": true,
+          "new_critical_failures": [],
+          "pass": true
+        }
+      }
+    },
+    {
+      "name": "injected",
+      "exit_code": 1,
+      "status": "failed",
+      "gate": {
+        "version": "v3",
+        "regression_injected": true,
+        "provenance": {
+          "commit": "0514c7757b18a3ce0586d3fe41ac844cd82ed3f9",
+          "dirty": true,
+          "code_hash": "ddb364aeab450c32b100cd9b51cbd9569ec7263cb80885f5560402eabca6d61a"
+        },
+        "steps": [
+          {
+            "name": "unit_tests",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "frozen_v2_integrity",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "selected_frozen_integrity",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "quality",
+            "exit_code": 1,
+            "status": "failed"
+          },
+          {
+            "name": "promptfoo",
+            "exit_code": 100,
+            "status": "failed"
+          }
+        ],
+        "pass": false,
+        "live_model": "not_run",
+        "human_review": "not_run",
+        "hosted_ci": "not_run",
+        "evaluation_summary": {
+          "cases": 12,
+          "automated_passes": 3,
+          "source_recall_at_3_mean": 0.0,
+          "recall_case_count": 7,
+          "critical_failures": [
+            "Q01",
+            "Q02",
+            "Q04",
+            "Q05",
+            "Q06",
+            "Q07",
+            "Q10",
+            "Q11",
+            "Q12"
+          ],
+          "citation_validity": {
+            "numerator": 0,
+            "denominator": 0,
+            "value": null
+          },
+          "citation_coverage": {
+            "numerator": 0,
+            "denominator": 0,
+            "value": null
+          },
+          "manual_citation_accuracy": {
+            "numerator": 0,
+            "denominator": 0,
+            "value": null
+          },
+          "manual_review_coverage": {
+            "numerator": 0,
+            "denominator": 0,
+            "value": null
+          },
+          "automated_gate_pass": false,
+          "human_review_complete": false
+        },
+        "regression": {
+          "compatible": false,
+          "new_critical_failures": null,
+          "pass": false
+        }
+      }
+    },
+    {
+      "name": "repaired",
+      "exit_code": 0,
+      "status": "passed",
+      "gate": {
+        "version": "v3",
+        "regression_injected": false,
+        "provenance": {
+          "commit": "0514c7757b18a3ce0586d3fe41ac844cd82ed3f9",
+          "dirty": true,
+          "code_hash": "ddb364aeab450c32b100cd9b51cbd9569ec7263cb80885f5560402eabca6d61a"
+        },
+        "steps": [
+          {
+            "name": "unit_tests",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "frozen_v2_integrity",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "selected_frozen_integrity",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "quality",
+            "exit_code": 0,
+            "status": "passed"
+          },
+          {
+            "name": "promptfoo",
+            "exit_code": 0,
+            "status": "passed"
+          }
+        ],
+        "pass": true,
+        "live_model": "not_run",
+        "human_review": "not_run",
+        "hosted_ci": "not_run",
+        "evaluation_summary": {
+          "cases": 12,
+          "automated_passes": 12,
+          "source_recall_at_3_mean": 1.0,
+          "recall_case_count": 7,
+          "critical_failures": [],
+          "citation_validity": {
+            "numerator": 15,
+            "denominator": 15,
+            "value": 1.0
+          },
+          "citation_coverage": {
+            "numerator": 15,
+            "denominator": 15,
+            "value": 1.0
+          },
+          "manual_citation_accuracy": {
+            "numerator": 0,
+            "denominator": 0,
+            "value": null
+          },
+          "manual_review_coverage": {
+            "numerator": 0,
+            "denominator": 15,
+            "value": 0.0
+          },
+          "automated_gate_pass": true,
+          "human_review_complete": false
+        },
+        "regression": {
+          "compatible": true,
+          "new_critical_failures": [],
+          "pass": true
+        }
+      }
+    }
+  ],
+  "demonstration_pass": true
+}

@@ -1,4 +1,5 @@
 from copy import deepcopy
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -12,6 +13,16 @@ from docs_radar.topic_passages import build_topic_passages
 
 
 ROOT = Path(__file__).resolve().parent
+DEFAULT_VERSION = "v3"
+VERSIONS = ("v2", "v3")
+
+
+def suite_root(version=DEFAULT_VERSION):
+    if version not in VERSIONS:
+        raise ValueError("Unknown frozen suite version")
+    return ROOT if version == "v2" else ROOT / version
+
+
 INPUT_FIELDS = {"question", "audience", "reference_date"}
 WORKSPACE_FIELDS = {"topics", "facts", "sources", "approvals"}
 
@@ -138,10 +149,13 @@ def run_case(case_id, root=ROOT):
 
 
 if __name__ == "__main__":
-    suite = load_suite()
-    manifest = verify_manifest()
+    parser = argparse.ArgumentParser(description="Validate a frozen suite without evaluating answers")
+    parser.add_argument("--version", choices=VERSIONS, default=DEFAULT_VERSION)
+    root = suite_root(parser.parse_args().version)
+    suite = load_suite(root)
+    manifest = verify_manifest(root)
     for fixture_id, relative in manifest["fixtures"].items():
-        fixture = json.loads(checked_path(ROOT, relative).read_text(encoding="utf-8"))
+        fixture = json.loads(checked_path(root, relative).read_text(encoding="utf-8"))
         materialize_fixture(fixture)
         print(f"Fixture valid: {fixture_id}")
     print(f"Frozen {suite['version']}: {len(suite['cases'])} cases; bundle {manifest['bundle_sha256']}")

@@ -9,7 +9,7 @@ import time
 
 from docs_radar.answers import answer
 from evals.metrics import score_case, summarize
-from evals.suite import load_suite, prepare_case, verify_manifest
+from evals.suite import DEFAULT_VERSION, VERSIONS, load_suite, prepare_case, suite_root, verify_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -50,12 +50,15 @@ def compare_baseline(report, baseline):
             "pass": compatible and not new_failed}
 
 
-def evaluate(mode="extractive", model=None, reviews=None):
-    suite = load_suite()
-    manifest = verify_manifest()
+def evaluate(mode="extractive", model=None, reviews=None, *, version=DEFAULT_VERSION, inject_regression=False):
+    root = suite_root(version)
+    suite = load_suite(root)
+    manifest = verify_manifest(root)
     rows, outputs = [], {}
     for case in suite["cases"]:
-        inputs, workspace = prepare_case(case["id"])
+        inputs, workspace = prepare_case(case["id"], root)
+        if inject_regression:
+            workspace["approvals"] = {}  # In-memory control only; never edit frozen/live approvals.
         started = time.perf_counter()
         output = answer(**inputs, workspace=workspace, mode=mode, model=model)
         elapsed = time.perf_counter() - started
@@ -72,6 +75,7 @@ def evaluate(mode="extractive", model=None, reviews=None):
         "schema_version": 1, "created_at": datetime.now(timezone.utc).isoformat(),
         "provenance": {**git_provenance(), "code_hash": code_hash(),
             "test_set_version": suite["version"], "test_set_hash": manifest["bundle_sha256"],
+            "regression_injected": inject_regression,
             "mode": mode, "answer_style": "model_selected_excerpts" if mode == "live-model" else "extractive_excerpts",
             "model_id": model, "prompt_hash": PROMPT_HASH if mode == "live-model" else None,
             "corpus_hashes": sorted({r["run"]["corpus_hash"] for r in rows if r["run"]["corpus_hash"]}),
@@ -98,10 +102,23 @@ def save_report(path, value):
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def save_evaluation(path, report, outputs):
+    """Keep raw outputs local and tied to this report, not a mutable global slot."""
+    path = Path(path)
+    if path.exists() and not path.resolve().is_relative_to((ROOT / "reports/local").resolve()):
+        raise ValueError("Recorded reports are immutable; choose a new path")
+    artifact = ROOT / "reports/local" / (path.stem + "-outputs.json")
+    report["output_artifact"] = artifact.relative_to(ROOT).as_posix()
+    save_report(artifact, outputs)
+    save_report(path, report)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("extractive", "live-model"), default="extractive")
     parser.add_argument("--model")
+    parser.add_argument("--version", choices=VERSIONS, default=DEFAULT_VERSION)
+    parser.add_argument("--inject-regression", action="store_true", help="Isolated in-memory missing-approval control across the full suite")
     parser.add_argument("--output", type=Path, default=ROOT / "reports/local/latest.json")
     parser.add_argument("--baseline", type=Path)
     parser.add_argument("--reviews", type=Path)
@@ -114,11 +131,11 @@ def main():
         parser.error("Recorded reports are immutable; choose a new path or reports/local/")
     try:
         reviews = json.loads(args.reviews.read_text(encoding="utf-8")) if args.reviews else None
-        report, outputs = evaluate(args.mode, args.model, reviews)
+        report, outputs = evaluate(args.mode, args.model, reviews, version=args.version, inject_regression=args.inject_regression)
         if args.baseline:
             report["regression"] = compare_baseline(report, json.loads(args.baseline.read_text(encoding="utf-8")))
-        save_report(args.output, report)
-        # Raw evidence/output is local-only; tracked summaries contain hashes, not snapshots.
+        save_evaluation(args.output, report, outputs)
+        # Legacy convenience copy; review uses the report-specific, hash-checked artifact.
         save_report(ROOT / "reports/local/outputs.json", outputs)
     except (OSError, ValueError, KeyError, TypeError) as error:
         print(f"Evaluation blocked: {error}")

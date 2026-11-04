@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "test_set_version": "v3",
+  "accepted_by": "Nik",
+  "accepted_on": "2026-11-03",
+  "acceptance_scope": "Nik approved the two exact draft texts/date routing and a separate corpus version. Questions, expected behavior, criticality and thresholds remain unchanged from reviewed v2. This is not output-level citation-support review.",
+  "previous_bundle_sha256": "eeb5c8943255702dcc405bfac4854f9c9d7d8f7f90508af2482cf284024e3405",
+  "snapshot_code_commit": "0514c7757b18a3ce0586d3fe41ac844cd82ed3f9",
+  "change_reason": "Reviewed corpus coverage/qualification corrections; no benchmark weakening or baseline replacement.",
+  "approved_topic_fingerprints": {
+    "provider-migration-checklist.md": "93e5cbb72be42a061964c2735872eb1e0a23cb09f79e6f0ce5a0dbc6874c9a1d",
+    "patient-unpaid-orders.md": "301c36d2de7620009ee7d5c4923df35e05a2cc11144cac0067b9fec8cfcab5ee"
+  },
+  "hashing": "SHA-256 of UTF-8 text after universal newline normalization to LF; not a cryptographic signature.",
+  "files": {
+    "cases.md": "4f992f36714ec4d79faaa34b5b1b018003a9b2a02721c2ef9eddb7a015c724c7",
+    "cases.json": "628f91118d090a57a1d669f04d4acfd604338daeddad41a1c3dd4de9062dbbb8",
+    "fixtures/public-corpus-v2.json": "3089a4aa19bc8c10e73a51c1ba592c39f45d897085426870ec710a31e8322ab3",
+    "fixtures/draft-only-v1.json": "4129ea1c5508356f7ef13ea4e2190b7e9c1cdc8a87538baf52ee798b6bbcd3a2",
+    "fixtures/conflict-v1.json": "5e6f80c071916a5df6e7c7befc632276b428c0882831cb19065ff84bd3e0f07d",
+    "fixtures/forged-citation-v1.json": "740486743554bf41d5349d275513c98d6efb5800cbf1d6636640ab4d53727866",
+    "fixtures/injected-instruction-v1.json": "a2d358c700477cb0db6fc14d7caf28e0d1e2a6d3755ebebddec5ea56aa19318c"
+  },
+  "fixtures": {
+    "public-corpus-v2": "fixtures/public-corpus-v2.json",
+    "draft-only-v1": "fixtures/draft-only-v1.json",
+    "conflict-v1": "fixtures/conflict-v1.json",
+    "forged-citation-v1": "fixtures/forged-citation-v1.json",
+    "injected-instruction-v1": "fixtures/injected-instruction-v1.json"
+  },
+  "bundle_sha256": "47cb6ee60fcdc67d9e17010d9f391421f14c7daf5672b25c119d71c4f30f8339",
+  "baseline_status": "not_established"
+}
