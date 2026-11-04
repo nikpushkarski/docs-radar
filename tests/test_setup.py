@@ -76,6 +76,26 @@ def manifest(directory, missing=False):
     return target
 
 
+def modern_manifest(directory, *, legacy=True):
+    """Ollama's active v2 manifest plus a different legacy compatibility anchor."""
+    old = manifest(directory)
+    raw = old.read_bytes()
+    digest = hashlib.sha256(raw).hexdigest()
+    blob = directory / "ollama" / "blobs" / ("sha256-" + digest)
+    blob.write_bytes(raw)
+    active = directory / "ollama/manifests-v2/ollama.com/library/test-model/latest"
+    active.parent.mkdir(parents=True)
+    active.write_bytes(raw)  # Windows copy fallback; link behavior is tested separately.
+    if legacy:
+        anchor = json.loads(raw)
+        anchor["layers"].append({"digest": "sha256:" + digest, "size": len(raw),
+                                 "mediaType": "application/vnd.docker.distribution.manifest.v2+json"})
+        old.write_text(json.dumps(anchor), encoding="utf-8")
+    else:
+        old.unlink()
+    return active
+
+
 class HardwareTests(unittest.TestCase):
     def test_current_windows_class_uses_4b_not_8b(self):
         self.assertEqual(support.recommend_model(WINDOWS).tag, "qwen3:4b")
@@ -179,6 +199,54 @@ class ModelDiscoveryTests(unittest.TestCase):
         found = support.inspect_models(self.root)
         self.assertEqual(found[0].name, "test-model:latest")
         self.assertTrue(found[0].usable)
+
+    def test_v2_only_cache_is_found(self):
+        active = modern_manifest(self.root, legacy=False)
+        found = support.inspect_models(self.root)
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].path, active)
+        self.assertTrue(found[0].usable)
+
+    def test_v2_takes_precedence_over_different_legacy_anchor_without_duplicates(self):
+        active = modern_manifest(self.root)
+        old = self.root / "ollama/manifests/registry.ollama.ai/library/test-model/latest"
+        self.assertNotEqual(active.read_bytes(), old.read_bytes())
+        found = support.inspect_models(self.root)
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].path, active)
+        self.assertTrue(found[0].usable)
+
+    def test_invalid_v2_never_falls_back_to_valid_legacy_anchor(self):
+        active = modern_manifest(self.root)
+        active.write_text("{bad json", encoding="utf-8")
+        found = support.inspect_models(self.root)
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].path, active)
+        self.assertFalse(found[0].usable)
+
+    def test_v2_content_addressed_link_is_validated_without_symlink_privileges(self):
+        active = modern_manifest(self.root)
+        digest = hashlib.sha256(active.read_bytes()).hexdigest()
+        blob = self.root / "ollama/blobs" / ("sha256-" + digest)
+        original_is_link, original_resolve = Path.is_symlink, Path.resolve
+        # Simulate the official macOS link layout on Windows without requiring
+        # administrator/Developer Mode symlink privileges. File bytes are real.
+        with patch.object(Path, "is_symlink", lambda p: p == active or original_is_link(p)), \
+             patch.object(Path, "resolve", lambda p, **kw: original_resolve(blob, **kw) if p == active else original_resolve(p, **kw)):
+            self.assertTrue(support.inspect_models(self.root)[0].usable)
+            active.write_text('{"changed":true}', encoding="utf-8")
+            found = support.inspect_models(self.root)
+            self.assertFalse(found[0].usable)
+            self.assertIn("checksum mismatch", found[0].note)
+
+    def test_v2_link_outside_model_store_is_rejected(self):
+        active = modern_manifest(self.root)
+        original_is_link, original_resolve = Path.is_symlink, Path.resolve
+        with patch.object(Path, "is_symlink", lambda p: p == active or original_is_link(p)), \
+             patch.object(Path, "resolve", lambda p, **kw: self.root / "outside" if p == active else original_resolve(p, **kw)):
+            found = support.inspect_models(self.root)
+        self.assertFalse(found[0].usable)
+        self.assertIn("outside this model store", found[0].note)
 
     def test_missing_cache_blob_is_reported_not_reused(self):
         manifest(self.root, missing=True)
@@ -341,6 +409,22 @@ class ConsentFlowTests(unittest.TestCase):
         self.assertIn("langchain-ollama==1.1.0", plan)
         self.assertIn("local-model Python dependencies are installed", str(ui.events))
         self.assertNotIn("requires scripts/requirements-model.txt", str(ui.events))
+
+    def test_download_setup_record_is_immediately_valid_for_startup_with_v2_cache(self):
+        active = modern_manifest(self.root / "models")
+        digest = hashlib.sha256(active.read_bytes()).hexdigest()
+        selection = support.Model("test-model:latest", 100, 2.0, digest)
+        self.operations["prepare_model"].side_effect = support.prepare_model
+        with patch.object(app, "choose_model", return_value=selection), \
+             patch.object(support, "run_command") as run, \
+             patch.object(support, "local_json", return_value={"models": [{"name": selection.tag, "digest": digest}]}), \
+             patch.object(support, "detect_hardware", return_value=WINDOWS), \
+             patch.object(support, "cached_runtime", return_value=Path("external/ollama")):
+            self.assertTrue(app.setup(FakeUI(), self.root))
+            self.assertEqual(support.configured_model(self.root), (Path("external/ollama"), selection.tag))
+        self.assertEqual(run.call_args.args[0][1:], ["pull", selection.tag])
+        record = json.loads((self.root / "models/setup.json").read_bytes())
+        self.assertEqual(record["model_digest"], digest)
 
     def test_model_consent_declined_never_installs_dependencies_or_weights(self):
         for existing in (False, True):
@@ -573,6 +657,15 @@ class MutationSafetyTests(unittest.TestCase):
              patch.object(support, "local_json", return_value={"models": [{"name": item.name, "digest": digest}]}):
             result = support.prepare_model(Path("ollama"), self.root, item, FakeUI())
         self.assertEqual(result, (item.name, digest))
+        run.assert_not_called()
+
+    def test_v2_existing_cache_reuse_matches_api_digest_without_pull(self):
+        active = modern_manifest(self.root / "models")
+        item = support.inspect_models(self.root / "models")[0]
+        digest = hashlib.sha256(active.read_bytes()).hexdigest()
+        with patch.object(support, "run_command") as run, \
+             patch.object(support, "local_json", return_value={"models": [{"name": item.name, "digest": digest}]}):
+            self.assertEqual(support.prepare_model(Path("ollama"), self.root, item, FakeUI()), (item.name, digest))
         run.assert_not_called()
 
     def test_gguf_import_uses_create_not_pull_with_spaces_and_unicode(self):

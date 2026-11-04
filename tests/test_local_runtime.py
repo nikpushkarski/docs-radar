@@ -5,12 +5,13 @@ from contextlib import contextmanager, ExitStack
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
 from docs_radar import local_runtime as runtime
 from scripts import setup_support as support
-from tests.test_setup import WINDOWS, manifest
+from tests.test_setup import WINDOWS, manifest, modern_manifest
 
 
 class RuntimeTests(unittest.TestCase):
@@ -108,6 +109,21 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(self.spawn.call_count, 2)
 
 
+class ModelTagTests(unittest.TestCase):
+    def test_only_usable_managed_tags_are_listed_once(self):
+        items = [SimpleNamespace(name=name, kind=kind, usable=usable) for name, kind, usable in (
+            ("z:latest", "ollama", True), ("a:latest", "ollama", True),
+            ("a:latest", "ollama", True), ("large:8b", "ollama", False),
+            ("unimported.gguf", "gguf", True), ("partial:latest", "ollama", False))]
+        with patch.object(runtime, "inspect_models", return_value=items) as discover:
+            self.assertEqual(runtime.installed_model_tags(Path("project")), ("a:latest", "z:latest"))
+        discover.assert_called_once_with(Path("project/models"))
+
+    def test_unreadable_optional_model_folder_returns_no_choices(self):
+        with patch.object(runtime, "inspect_models", side_effect=OSError("unreadable")):
+            self.assertEqual(runtime.installed_model_tags(Path("project")), ())
+
+
 class ConfiguredModelTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
@@ -130,6 +146,20 @@ class ConfiguredModelTests(unittest.TestCase):
 
     def test_only_verified_binary_and_local_tag_are_used(self):
         self.assertEqual(support.configured_model(self.root), (Path("verified/ollama"), "test-model:latest"))
+
+    def test_existing_setup_record_matches_active_v2_without_rewriting_it(self):
+        modern_manifest(self.root / "models")
+        before = self.target.read_bytes()
+        self.assertEqual(support.configured_model(self.root), (Path("verified/ollama"), "test-model:latest"))
+        self.assertEqual(self.target.read_bytes(), before)
+
+    def test_changed_active_v2_is_rejected_even_with_unchanged_legacy_anchor(self):
+        active = modern_manifest(self.root / "models")
+        value = json.loads(active.read_bytes())
+        value["changed"] = True
+        active.write_text(json.dumps(value), encoding="utf-8")
+        with self.assertRaisesRegex(support.SetupError, "missing, incomplete or changed"):
+            support.configured_model(self.root)
 
     def test_wrong_os_or_changed_digest_is_rejected(self):
         for key, value in (("platform", "Darwin"), ("model_digest", "wrong")):

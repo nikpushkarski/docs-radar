@@ -100,6 +100,7 @@ class ViewTests(OfflineModelMixin, unittest.TestCase):
         self.assertEqual((ROOT / 'data/approvals.json').read_bytes(), approvals)
 
     def test_default_requires_no_model_and_model_output_is_labelled_extractive(self):
+        self.installed_tags.return_value = ("qwen3:4b",)
         import json
         from datetime import date
         app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=15).run()
@@ -140,13 +141,14 @@ class ViewTests(OfflineModelMixin, unittest.TestCase):
         self.assertIn("No complete live-model evidence", report_freshness(report))
 
     def test_live_request_shows_error_without_fallback(self):
+        self.installed_tags.return_value = ("qwen3:4b",)
         app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=15).run()
         from datetime import date
         app.text_input[0].input("Where should I place new lab orders?")
         app.selectbox[0].select("Providers")
         app.date_input[0].set_value(date(2026, 11, 1))
         app.radio[0].set_value("Model-selected excerpts (optional)")
-        app.text_input[1].input("qwen3:4b")
+        app.selectbox[1].select("qwen3:4b")
         with patch("docs_radar.generation.invoke_local", side_effect=ImportError):
             app.button[0].click().run()
         self.assertFalse(app.exception)

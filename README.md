@@ -175,7 +175,8 @@ An occupied project port is reported rather than reusing or stopping another pro
 If the configured model cannot start because its metadata, dependencies, or weights are invalid or missing, the app shows a warning and keeps extractive mode available.
 Rerun setup to repair the installation, then use **Retry model server startup** or restart the app.
 Setup itself stops its temporary server on completion and records the selected model/digest in `models/setup.json`; it does not claim a generation smoke test passed.
-In **Ask and inspect**, choose **Model-selected excerpts (optional)**; the installed tag is filled in automatically.
+In **Ask and inspect**, choose **Model-selected excerpts (optional)**; the **Installed local model** dropdown defaults to the setup-selected model.
+Choose another supported installed model, or **Other…** to enter an already-installed local tag manually; neither option downloads models.
 The adapter never pulls models; resource limits, missing dependencies/runtime, or invalid selections return explicit errors, not silent fallback.
 For all 12 evaluation cases, keep the app open and run `python -m evals.run --mode live-model --model <installed-tag>` in another activated terminal on either OS.
 This saves local provenance and outputs; human support review remains separate.

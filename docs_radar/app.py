@@ -9,7 +9,7 @@ from docs_radar.answers import answer
 from docs_radar.approvals import approval_status
 from docs_radar.content_actions import approve_topic, revoke_topic, save_draft
 from docs_radar.content_fingerprint import content_fingerprint
-from docs_radar.local_runtime import start_app_model
+from docs_radar.local_runtime import installed_model_tags, start_app_model
 from docs_radar.detect_impact import preview_change
 from docs_radar.change_preview import highlighted_change
 from docs_radar.quality_view import available_reports, report_freshness
@@ -68,20 +68,29 @@ def ask_view(runtime):
     elif runtime.model:
         st.caption(f"Local model server ready: {runtime.model}. Started by this app; no second terminal needed.")
     st.caption("Evidence is based on captured documentation, not live policy verification.")
-    with st.form("ask"):
+    # An ordinary container lets Other… reveal its input immediately; answers
+    # still run only when Find evidence is clicked, never on a widget change.
+    with st.container(border=True):
         question = st.text_input("Question")
         audience = st.selectbox("Audience", ["Choose audience", "Providers", "Patients"])
         reference_date = st.date_input("Reference date", value=date.today())
         mode_label = st.radio("Answer mode", ["Extractive", "Model-selected excerpts (optional)"], horizontal=True)
         st.caption("No model is needed by default. Optional selection: installed 4B-class model at most, one short call, immediate unload; not a speed guarantee on your device.")
-        # Keep the model tag explicit; never select a hosted fallback or download here.
-        model = st.text_input("Installed local model tag", value=runtime.model, placeholder="For example qwen3:4b")
-        submitted = st.form_submit_button("Find evidence")
+        tags = list(dict.fromkeys(tag for tag in (runtime.model, *installed_model_tags(ROOT)) if tag))
+        selected = st.selectbox("Installed local model", [*tags, "Other…"])
+        model = (st.text_input("Other local model tag", placeholder="For example qwen3:4b").strip()
+                 if selected == "Other…" else selected)
+        if selected == "Other…":
+            st.caption("Enter a tag already installed on the project server. This does not download a model or enable cloud access.")
+        submitted = st.button("Find evidence")
     if submitted:
         mode = "extractive" if mode_label == "Extractive" else "live-model"
         if mode == "live-model" and runtime.error:
             st.session_state.pop("last_answer", None)
             st.error("Local model selection is unavailable. Retry server startup or explicitly choose extractive mode.")
+        elif mode == "live-model" and not model:
+            st.session_state.pop("last_answer", None)
+            st.error("Choose an installed model or enter a local model tag under Other….")
         else:
             st.session_state["last_answer"] = answer(question, audience,
                 reference_date.isoformat() if reference_date else "", mode=mode, model=model or None)

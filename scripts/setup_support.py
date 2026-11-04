@@ -221,7 +221,7 @@ def configured_model(root):
         raise SetupError("No verified runtime for this OS. Rerun setup; do not copy native installations between operating systems.")
     models = inspect_models(root / "models")
     selected = next((item for item in models if item.kind == "ollama" and item.usable and item.name == record.get("model")), None)
-    if not selected or hashlib.sha256(selected.path.read_bytes()).hexdigest() != record.get("model_digest"):
+    if not selected or hashlib.sha256(model_manifest_bytes(selected.path, root / "models")).hexdigest() != record.get("model_digest"):
         raise SetupError("The configured local model is missing, incomplete or changed. Rerun setup to select or import a model.")
     return binary, selected.name
 
@@ -244,6 +244,33 @@ def recommend_model(hardware, runtime_missing=True):
     return eligible[-1] if eligible else None
 
 
+def model_manifest_bytes(path, directory):
+    """Read legacy/copy manifests or verified v2 links into this store's blobs."""
+    store = directory / "ollama"
+    # Official v2 names may link to a content-addressed manifest blob. No links
+    # to other stores, linked parent directories, or unverified blob names.
+    for parent in (path.parent, *path.parent.parents):
+        if parent.is_symlink():
+            raise ValueError("Linked model-store directories are not supported")
+        if parent == store:
+            break
+    expected = None
+    if path.is_symlink():
+        blobs = store / "blobs"
+        target = path.resolve(strict=True)
+        if blobs.is_symlink() or target.parent != blobs.resolve(strict=True):
+            raise ValueError("Manifest link points outside this model store")
+        if not re.fullmatch(r"sha256-[a-f0-9]{64}", target.name):
+            raise ValueError("Invalid manifest blob name")
+        expected = target.name.removeprefix("sha256-")
+    if path.stat().st_size > 1024 ** 2:
+        raise ValueError("Invalid manifest size")
+    raw = path.read_bytes()
+    if expected and hashlib.sha256(raw).hexdigest() != expected:
+        raise ValueError("Manifest blob checksum mismatch")
+    return raw
+
+
 def inspect_models(directory):
     directory = Path(directory)
     if not directory.exists():
@@ -263,16 +290,19 @@ def inspect_models(directory):
             found.append(LocalModel(path.name, path, "gguf", size, valid, note))
         except OSError as error:
             found.append(LocalModel(path.name, path, "gguf", 0, False, str(error)))
-    manifest_root = directory / "ollama" / "manifests"
-    for path in sorted(manifest_root.glob("registry.ollama.ai/*/*/*")):
-        if not path.is_file():
-            continue
-        parts = path.relative_to(manifest_root).parts
-        name = ("" if parts[1] == "library" else parts[1] + "/") + parts[2] + ":" + parts[3]
+    # Ollama prefers manifests-v2/ollama.com over legacy registry.ollama.ai
+    # anchors. Anchors can contain extra compatibility layers and a different
+    # digest; never compare their hash to the active model's /api/tags digest.
+    candidates = {}
+    for folder, host in (("manifests-v2", "ollama.com"), ("manifests", "registry.ollama.ai")):
+        manifest_root = directory / "ollama" / folder
+        for path in sorted(manifest_root.glob(host + "/*/*/*")):
+            parts = path.relative_to(manifest_root).parts
+            name = ("" if parts[1] == "library" else parts[1] + "/") + parts[2] + ":" + parts[3]
+            candidates.setdefault(name, path)  # Invalid v2 must not silently fall back.
+    for name, path in sorted(candidates.items()):
         try:
-            if path.stat().st_size > 1024 ** 2 or path.is_symlink():
-                raise ValueError("Invalid manifest")
-            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest = json.loads(model_manifest_bytes(path, directory))
             layers = manifest["layers"]
             if not any(layer.get("mediaType") == "application/vnd.ollama.image.model" for layer in layers):
                 raise ValueError("Not a local weights manifest")
@@ -508,7 +538,7 @@ def prepare_model(binary, root, selection, ui):
         expected = None
     else:
         tag = selection.name
-        expected = hashlib.sha256(selection.path.read_bytes()).hexdigest()
+        expected = hashlib.sha256(model_manifest_bytes(selection.path, root / "models")).hexdigest()
     entries = local_json("/api/tags").get("models", [])
     record = next((item for item in entries if item.get("name") == tag), None)
     if not record or not re.fullmatch(r"[a-f0-9]{64}", str(record.get("digest", ""))) or (expected and record.get("digest") != expected):

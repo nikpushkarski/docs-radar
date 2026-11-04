@@ -10,7 +10,7 @@ import logging
 from pathlib import Path
 import threading
 
-from scripts.setup_support import SetupError, configured_model, model_server
+from scripts.setup_support import SetupError, configured_model, inspect_models, model_server
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,15 @@ class RuntimeStatus:
 class StartupLog:
     def status(self, message):
         logging.getLogger(__name__).info(message)
+
+
+def installed_model_tags(root):
+    """List usable managed models locally; unimported GGUFs are not server tags."""
+    try:
+        return tuple(sorted({item.name for item in inspect_models(Path(root) / "models")
+                             if item.kind == "ollama" and item.usable}))
+    except OSError:
+        return ()  # Optional discovery must not prevent extractive use.
 
 
 def check_integration():
