@@ -44,21 +44,28 @@ class ViewTests(unittest.TestCase):
     def test_approval_and_simulated_impact_are_separate_and_explained(self):
         app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=15).run()
         self.assertFalse(app.exception)
-        table = next(item.value for item in app.dataframe if "Approval for answers" in item.value.columns)
+        table = app.table[0].value
+        self.assertEqual(list(table.columns), ['Document', 'Simulation review'])
         rows = {row['Document']: row for row in table.to_dict('records')}
+        self.assertEqual(next(w for w in app.selectbox if w.label == 'Topic to inspect').value,
+                         'provider-migration-checklist.md')
+        self.assertIn('background-color: #fff1b8', app.table[0].proto.arrow_data.styler.styles)
         expected = {
-            'patient-unpaid-orders.md': ('Approved', 'No'),
-            'provider-migration-checklist.md': ('Approved', 'Yes'),
-            'rupa-view-only.md': ('Not approved — no review recorded', 'Yes'),
+            'patient-unpaid-orders.md': ('Approved', 'No changes proposed'),
+            'provider-migration-checklist.md': ('Approved', 'Review needed — proposed change'),
+            'rupa-view-only.md': ('Not approved — no review recorded', 'Review needed — proposed change'),
         }
-        for name, (approval, impact) in expected.items():
+        for name, (approval, review) in expected.items():
             with self.subTest(topic=name):
-                self.assertEqual(rows[name]['Approval for answers'], approval)
-                self.assertEqual(rows[name]['Affected by simulated change?'], impact)
+                self.assertEqual(rows[name]['Simulation review'], review)
                 next(widget for widget in app.selectbox if widget.label == 'Topic to inspect').select(name).run()
                 self.assertFalse(app.exception)
-                self.assertTrue(any(f'Approval for answers: {approval}. Affected by simulated change: {impact}.' == item.value for item in app.info))
-        self.assertTrue(any('A simulated preview does not change approval' in item.value for item in app.caption))
+                saved = next(x for x in app.expander if x.label == 'Current saved document and approval—not the proposal')
+                self.assertTrue(any(item.value == f'Current saved version: {approval}.' for item in saved.markdown))
+                self.assertTrue(any('Approve current saved version only' == item.label for item in saved.button))
+                if review.startswith('Review needed'):
+                    self.assertTrue(any(item.value == 'Review needed — simulated change' for item in app.warning))
+                    self.assertTrue(any('has not been applied or approved' in item.value for item in app.markdown))
 
     def test_nonapproved_states_keep_useful_plain_language_reasons(self):
         labels = {
@@ -71,9 +78,24 @@ class ViewTests(unittest.TestCase):
             with self.subTest(status=status), patch('docs_radar.approvals.approval_status', return_value=status):
                 app = AppTest.from_file(str(ROOT / 'docs_radar/app.py'), default_timeout=15).run()
                 self.assertFalse(app.exception)
-                table = next(item.value for item in app.dataframe if 'Approval for answers' in item.value.columns)
-                self.assertEqual(set(table['Approval for answers']), {label})
-                self.assertEqual(set(table['Affected by simulated change?']), {'Yes', 'No'})
+                self.assertTrue(any(item.value == f'Current saved version: {label}.' for item in app.markdown))
+                self.assertEqual(set(app.table[0].value['Simulation review']),
+                                 {'Review needed — proposed change', 'No changes proposed'})
+
+    def test_notes_toggle_preserves_topic_choice_and_approvals(self):
+        approvals = (ROOT / 'data/approvals.json').read_bytes()
+        app = AppTest.from_file(str(ROOT / 'docs_radar/app.py'), default_timeout=15).run()
+        self.assertTrue(any('display: none !important' in item.value for item in app.markdown))
+        next(w for w in app.selectbox if w.label == 'Topic to inspect').select('patient-unpaid-orders.md').run()
+        app.button(key='toggle_notes').click().run()
+        self.assertFalse(app.exception)
+        self.assertEqual(app.button(key='toggle_notes').label, 'Hide notes')
+        self.assertFalse(any('display: none !important' in item.value for item in app.markdown))
+        self.assertEqual(next(w for w in app.selectbox if w.label == 'Topic to inspect').value, 'patient-unpaid-orders.md')
+        app.button(key='toggle_notes').click().run()
+        self.assertEqual(app.button(key='toggle_notes').label, 'Show notes')
+        self.assertTrue(any('display: none !important' in item.value for item in app.markdown))
+        self.assertEqual((ROOT / 'data/approvals.json').read_bytes(), approvals)
 
     def test_default_requires_no_model_and_model_output_is_labelled_extractive(self):
         import json

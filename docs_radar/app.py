@@ -2,6 +2,7 @@ from datetime import date
 import json
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 from docs_radar.answers import answer
@@ -115,35 +116,26 @@ def content_view():
     affected_ids = {item["topic_id"] for item in affected}
     states = [{
         "Document": topic_id,
-        "Approval for answers": approval_labels.get(
-            approval_status(topic_id, text, workspace["facts"], workspace["approvals"]),
-            "Not approved — unknown review status"),
-        "Affected by simulated change?": "Yes" if topic_id in affected_ids else "No",
+        "Simulation review": "Review needed — proposed change" if topic_id in affected_ids else "No changes proposed",
     } for topic_id, text in sorted(workspace["topics"].items())]
-    st.caption("Approval controls whether the current version may supply answers; audience and date checks still apply. Change impact identifies documents that reference the simulated fact, including unapproved drafts.")
-    st.dataframe(states, hide_index=True)
-    st.caption("A simulated preview does not change approval. Changing actual document text or a referenced fact requires reapproval.")
-    topic_id = st.selectbox("Topic to inspect", sorted(workspace["topics"]))
-    selected = next(row for row in states if row["Document"] == topic_id)
-    st.info(f"Approval for answers: {selected['Approval for answers']}. "
-            f"Affected by simulated change: {selected['Affected by simulated change?']}.")
+    st.table(pd.DataFrame(states).style.map(
+        lambda value: "background-color: #fff1b8; color: #593b00; font-weight: bold;"
+        if value.startswith("Review needed") else "", subset=["Simulation review"]), hide_index=True)
+    topics = sorted(workspace["topics"])
+    first_review = next((index for index, name in enumerate(topics) if name in affected_ids), 0)
+    topic_id = st.selectbox("Topic to inspect", topics, index=first_review, key="topic_to_inspect")
     if topic_id in affected_ids:
-        st.caption("The preview below highlights this document's reference to the changed fact—not an approval problem. Unapproved documents can need updates too.")
+        st.warning("Review needed — simulated change")
+        st.write("Check the highlighted sentence and surrounding instructions. The proposed change has not been applied or approved.")
     else:
-        st.caption("This document does not reference the changed fact, so this simulation has no changes to highlight—regardless of approval status.")
+        st.info("No changes proposed for this document in this simulation.")
     text = workspace["topics"][topic_id]
     fingerprint = content_fingerprint(text, workspace["facts"])
     snapshot_key = "review_snapshot:" + topic_id
     if snapshot_key not in st.session_state:
         st.session_state[snapshot_key] = fingerprint
-    if st.button("Reload current version for review"):
-        st.session_state[snapshot_key] = fingerprint
-        st.session_state["draft:" + topic_id] = text
-    expected = st.session_state[snapshot_key]
-    if expected != fingerprint:
-        st.warning("This topic/fact version changed since your review began. Reload before saving or approving.")
     with st.expander("Simulated preview—not saved", expanded=True):
-        st.caption("Fictional change only. Red/struck through = current value; green/underlined = simulated value. Files and approvals are unchanged.")
+        st.write("Fictional proposal—not applied or approved. Red/struck through = current value; green/underlined = proposed value.")
         preview = highlighted_change(text, workspace["facts"], change)
         if preview is None:
             st.info("This document has no reference to the changed fact in its Markdown body; no simulated edits to show.")
@@ -151,41 +143,51 @@ def content_view():
             # All document/fact text is escaped; only our fixed diff markup is HTML.
             st.markdown(preview, unsafe_allow_html=True)
         st.caption("This previews fact substitutions only—not rewritten instructions or updated date-routing metadata. Those still need human review.")
-    st.subheader("Current document—not the simulation")
-    st.caption(f"Current fingerprint: {fingerprint}")
-    st.text(render_topic(text, workspace["facts"]))
-    try:
-        passages = build_topic_passages(topic_id, text, workspace["facts"], workspace["sources"])
-        if not passages:
-            st.warning("Not answerable yet: no passage metadata. Add it before approval.")
-        else:
-            st.caption(f"Answerable schema valid: {len(passages)} passages. Eligibility is separate.")
-    except (KeyError, TypeError, ValueError) as error:
-        st.warning(f"Not answerable yet: {error}")
-    with st.expander("Edit demo draft (metadata and Markdown)"):
-        st.caption("Save validates the schema. An edit changes the fingerprint and invalidates existing approval; it never reapproves content.")
-        draft = st.text_area("Draft source", value=text, height=300, key="draft:" + topic_id)
-        if st.button("Save draft"):
+    with st.expander("Current saved document and approval—not the proposal"):
+        status = approval_status(topic_id, text, workspace["facts"], workspace["approvals"])
+        st.write("Current saved version: " + approval_labels.get(status, "Not approved — unknown review status") + ".")
+        st.info("This status applies only to the saved document, not the simulated proposal. Approval does not cover proposed changes; audience and date checks still apply to answers.")
+        if st.button("Reload current saved version for review"):
+            st.session_state[snapshot_key] = fingerprint
+            st.session_state["draft:" + topic_id] = text
+        expected = st.session_state[snapshot_key]
+        if expected != fingerprint:
+            st.warning("This topic/fact version changed since your review began. Reload before saving or approving.")
+        st.caption(f"Current fingerprint: {fingerprint}")
+        st.text(render_topic(text, workspace["facts"]))
+        try:
+            passages = build_topic_passages(topic_id, text, workspace["facts"], workspace["sources"])
+            if not passages:
+                st.warning("Not answerable yet: no passage metadata. Add it before approval.")
+            else:
+                st.caption(f"Answerable schema valid: {len(passages)} passages. Eligibility is separate.")
+        except (KeyError, TypeError, ValueError) as error:
+            st.warning(f"Not answerable yet: {error}")
+        with st.expander("Edit saved demo draft (metadata and Markdown)"):
+            st.caption("Save validates the schema. An edit changes the fingerprint and invalidates existing approval; it never reapproves content.")
+            draft = st.text_area("Draft source", value=text, height=300, key="draft:" + topic_id)
+            if st.button("Save draft"):
+                try:
+                    save_draft(ROOT, topic_id, draft, expected)
+                    st.success("Draft saved. Reload and review the new version before approving it.")
+                except (OSError, ValueError, KeyError, TypeError) as error:
+                    st.error(str(error))
+        st.write("The controls below affect the saved document only. They do not apply or approve the simulation.")
+        with st.form("review_action"):
+            reviewer = st.text_input("Reviewer name (you, not Fullscript)")
+            confirmed = st.checkbox("I reviewed the current saved document and its referenced facts—not the simulated proposal.")
+            approve = st.form_submit_button("Approve current saved version only")
+            revoke = st.form_submit_button("Remove saved version from answers")
+        if approve or revoke:
             try:
-                save_draft(ROOT, topic_id, draft, expected)
-                st.success("Draft saved. Reload and review the new version before approving it.")
+                if approve:
+                    approve_topic(ROOT, topic_id, expected, reviewer, date.today().isoformat(), confirmed)
+                    st.success("Explicit demo approval saved for the current version only—not the proposal. Reload to see its status.")
+                else:
+                    revoke_topic(ROOT, topic_id, expected, confirmed)
+                    st.success("Topic returned to draft; it is excluded from new answers.")
             except (OSError, ValueError, KeyError, TypeError) as error:
                 st.error(str(error))
-    with st.form("review_action"):
-        reviewer = st.text_input("Reviewer name (you, not Fullscript)")
-        confirmed = st.checkbox("I reviewed this exact displayed topic and referenced facts for this independent demo.")
-        approve = st.form_submit_button("Approve reviewed version")
-        revoke = st.form_submit_button("Remove answer eligibility")
-    if approve or revoke:
-        try:
-            if approve:
-                approve_topic(ROOT, topic_id, expected, reviewer, date.today().isoformat(), confirmed)
-                st.success("Explicit demo approval saved for this version. Reload to see updated eligibility.")
-            else:
-                revoke_topic(ROOT, topic_id, expected, confirmed)
-                st.success("Topic returned to draft; it is excluded from new answers.")
-        except (OSError, ValueError, KeyError, TypeError) as error:
-            st.error(str(error))
 
 
 def support_review_view(report):
@@ -271,6 +273,28 @@ def quality_view():
     st.caption("These commands run locally. No hosted CI, paid judge, package installation or model download is triggered by this view.")
 
 
+def toggle_notes():
+    st.session_state["show_notes"] = not st.session_state.get("show_notes", False)
+
+
+show_notes = st.session_state.get("show_notes", False)
+st.markdown("""<style>
+.st-key-notes_control {
+    position: fixed; top: 5rem; left: calc(50% + 23rem + 0.75rem);
+    width: 8rem; z-index: 1000;
+}
+.st-key-notes_control button { box-shadow: 0 2px 8px #0003; }
+@media (max-width: 1050px) {
+    .st-key-notes_control { left: auto; right: 1rem; top: auto; bottom: 1rem; }
+    [data-testid="stMainBlockContainer"] { padding-bottom: 6rem; }
+}
+</style>""" + ("" if show_notes else """<style>
+[data-testid="stCaptionContainer"],
+[data-testid="stElementContainer"]:has([data-testid="stCaptionContainer"]) {
+    display: none !important;
+}
+</style>"""), unsafe_allow_html=True)
+
 st.title("Docs Radar")
 st.caption("Independent demo using public Fullscript documentation. Not affiliated with or endorsed by Fullscript.")
 ask_tab, content_tab, quality_tab = st.tabs(["Ask and inspect", "Content and changes", "Quality"])
@@ -286,3 +310,7 @@ with quality_tab:
         quality_view()
     except (OSError, ValueError, KeyError, TypeError) as error:
         st.error(f"Quality report unavailable: {error}")
+
+with st.container(key="notes_control"):
+    st.button("Hide notes" if show_notes else "Show notes", key="toggle_notes",
+              on_click=toggle_notes, help="Show or hide explanatory captions across all three tabs.")

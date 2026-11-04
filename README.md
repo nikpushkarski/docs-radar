@@ -12,6 +12,10 @@ There are 3 tabs in the app:
 |---|---|---|
 | check answers and evidence  | inspect dependencies and review drafts  |  see the recorded results |
 
+Explanatory captions are hidden by default; the floating **Show notes / Hide notes** button toggles them across all tabs.
+In **Content and changes**, highlighted **Review needed** cells identify simulated proposals, and the first affected topic opens automatically.
+Saved-document approval is separate and never approves a simulated proposal.
+
 > [!IMPORTANT]
 > Docs Radar is an independent demo and is **not affiliated with, endorsed by, or sponsored by Fullscript**.
 
@@ -302,7 +306,9 @@ Eligible here means passing the approval gate, not guaranteed relevance to a que
 Approvals apply only to this independent demo, not Fullscript.
 In **Content and changes**, inspect the rendered topic and facts before entering your reviewer name and confirming the exact version.
 **Save draft** validates metadata and invalidates an old approval when the content changes; it never reapproves it.
-**Remove answer eligibility** returns the topic to draft.
+Expand **Current saved document and approval—not the proposal** to manage the real document.
+**Approve current saved version only** does not apply or approve simulated changes.
+**Remove saved version from answers** returns the topic to draft.
 If a topic or referenced fact changes during review, reload before approving.
 Nik approved the exact revisions now in `content/patient-unpaid-orders.md` and `content/provider-migration-checklist.md`.
 Their matching fingerprints are recorded in `data/approvals.json`.
