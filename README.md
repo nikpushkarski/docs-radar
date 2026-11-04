@@ -40,7 +40,11 @@ Install [Python 3.13](https://www.python.org/downloads/), the tested dependency-
 
 Keep the default **Install extractive app only (no model)** for the quickest start; no GPU, Ollama, or model weights are needed.
 Use Up/Down and Enter to navigate, and review the download table before accepting.
-Open http://localhost:8501 after launching the app.
+At the end, choose Yes at **Run the application now?**, or choose No and use the launch command above later.
+Either way, one terminal runs the app and automatically starts its installed project model server, if configured.
+Open http://localhost:8501 if the browser does not open automatically.
+Keep the terminal open; Ctrl+C stops the app and its owned model server.
+Closing only the browser tab does not stop them.
 The default app shows cited excerpts, not model-generated answers.
 
 <details>
@@ -77,6 +81,8 @@ Selecting a new or existing model also installs `scripts/requirements-model.txt`
 The download plan lists the model integration before consent; installation progress identifies its Python dependencies and import check.
 N starts no downloads and shows the manual model folder and rerun instructions.
 Esc or Ctrl+C cancels; existing model files are not deleted.
+After successful installation, the separate **Run the application now?** prompt defaults to No.
+Yes launches the app using this project's `.venv`; No or cancellation leaves the installation ready for a later launch.
 
 Ollama 0.40.14, the pinned 4B model, Python dependencies, and real local calls were installed/executed on Windows with consent.
 Clean Windows manual setup was verified with a newly created virtual environment and no model packages or weights.
@@ -157,18 +163,24 @@ GGUF header detection is not proof of model compatibility; Ollama must successfu
 Importing a GGUF can create a second copy in the managed cache, so reserve disk space for both.
 Everything under `models/` is Git-ignored, including local setup metadata and logs; never force-add weights or use Git LFS for them.
 
-After a successful model installation, activate `.venv` and run `python -m scripts.setup_local --serve` from the project folder to start its server.
+Launching the app automatically starts the verified model selected in `models/setup.json`; no separate server command is needed.
+This starts the server, not inference: weights load only when you request model-selected excerpts.
 The server binds only to http://127.0.0.1:11435 with cloud disabled, one loaded model, and one request at a time.
 Selection uses a 2,048-token context, at most 64 output tokens, two CPU threads, a 30-second response timeout, and no repair retries.
 Oversized evidence is rejected rather than truncated.
 `keep_alive=0` unloads the model after each request; repeated calls reload it.
 It does not modify the default Ollama server on port 11434 or global user settings.
-Keep that terminal open; Enter or Ctrl+C stops the project server.
+The app shares one owned server across browser tabs and reruns, and stops it on normal app shutdown.
+An occupied project port is reported rather than reusing or stopping another process.
+If the configured model cannot start because its metadata, dependencies, or weights are invalid or missing, the app shows a warning and keeps extractive mode available.
+Rerun setup to repair the installation, then use **Retry model server startup** or restart the app.
 Setup itself stops its temporary server on completion and records the selected model/digest in `models/setup.json`; it does not claim a generation smoke test passed.
-In **Ask and inspect**, choose **Model-selected excerpts (optional)** and enter the installed tag from `models/setup.json`.
+In **Ask and inspect**, choose **Model-selected excerpts (optional)**; the installed tag is filled in automatically.
 The adapter never pulls models; resource limits, missing dependencies/runtime, or invalid selections return explicit errors, not silent fallback.
-For all 12 evaluation cases, run `python -m evals.run --mode live-model --model <installed-tag>` in another activated terminal on either OS.
+For all 12 evaluation cases, keep the app open and run `python -m evals.run --mode live-model --model <installed-tag>` in another activated terminal on either OS.
 This saves local provenance and outputs; human support review remains separate.
+For evaluation without the UI, `python -m scripts.setup_local --serve` remains available; do not run it alongside the app's automatic server.
+Keep that standalone server terminal open; Enter or Ctrl+C stops it.
 The Windows v3 run passed 12/12: seven actual selection calls took 2.38–3.60 seconds each; deterministic gates skipped the other five.
 No model remained resident afterward.
 These timings are not a performance guarantee for another machine, and human support review is still missing.

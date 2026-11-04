@@ -207,6 +207,25 @@ def cached_runtime(hardware):
     return None
 
 
+def configured_model(root):
+    """Validate setup's local selection; never trust stored executable paths/URLs."""
+    if any(path.is_symlink() for path in (root / "models", root / "models" / "ollama")):
+        raise SetupError("Model storage must be local project directories, not symlinks. Rerun setup.")
+    target = root / "models" / "setup.json"
+    if target.is_symlink() or target.stat().st_size > 1024 ** 2:
+        raise SetupError("Invalid local setup record. Rerun setup.")
+    record = json.loads(target.read_text(encoding="utf-8"))
+    hardware = detect_hardware(root)
+    binary = cached_runtime(hardware)
+    if not binary or not isinstance(record, dict) or record.get("platform") != hardware.system:
+        raise SetupError("No verified runtime for this OS. Rerun setup; do not copy native installations between operating systems.")
+    models = inspect_models(root / "models")
+    selected = next((item for item in models if item.kind == "ollama" and item.usable and item.name == record.get("model")), None)
+    if not selected or hashlib.sha256(selected.path.read_bytes()).hexdigest() != record.get("model_digest"):
+        raise SetupError("The configured local model is missing, incomplete or changed. Rerun setup to select or import a model.")
+    return binary, selected.name
+
+
 def recommend_model(hardware, runtime_missing=True):
     if not supported_runtime(hardware) or not hardware.available_ram:
         return None
@@ -419,7 +438,11 @@ def model_environment(root):
 
 def local_json(path):
     # Do not route loopback API traffic through a user's external HTTP proxy.
-    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *args, **kwargs):
+            return None
+
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
     with opener.open(BASE_URL + path, timeout=2) as response:
         return json.load(response)
 

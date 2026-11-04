@@ -150,6 +150,10 @@ At Nik's request, models now live inside the project in Git-ignored `models/`: m
 Never commit weights, local setup metadata or logs.
 The installer must detect existing models, offer arrow-key/Enter selection or a hardware recommendation, and show the proposed downloads before a default-Yes `[Y/n]` prompt.
 Declining must start no downloads and explain manual model placement plus rerun; EOF/cancellation must never imply consent.
+After successful setup, offer an optional app launch; declining or cancelling launch leaves the installation usable.
+Both immediate and later Streamlit launches start the configured, verified project model server automatically, without downloading anything or preloading weights.
+Share one owned server across UI reruns and tabs; stop it on normal app exit and never take over an unrelated listener.
+Keep extractive mode usable with a visible warning if optional startup fails.
 Check the actual architecture and memory: current macOS Ollama requires macOS 14+ and supports Apple silicon CPU/GPU or Intel CPU-only execution.
 Keep the extractive path available without Ollama, CUDA, or any model download.
 Document both setup paths, but report macOS as unverified until its installation and runtime checks are actually executed.

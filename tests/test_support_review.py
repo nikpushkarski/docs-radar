@@ -7,13 +7,15 @@ from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
 
+from tests.app_helpers import OfflineModelMixin
+
 from docs_radar.support_review import build_review, load_review_outputs
 from evals.run import evaluate, save_evaluation
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class SupportReviewTests(unittest.TestCase):
+class SupportReviewTests(OfflineModelMixin, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.report, cls.outputs = evaluate()

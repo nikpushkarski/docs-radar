@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
 
+from tests.app_helpers import OfflineModelMixin
+
 from docs_radar.answers import answer
 from docs_radar.approvals import approval_status
 from docs_radar.content_fingerprint import content_fingerprint
@@ -21,7 +23,7 @@ from scripts.build_eval_config import build_config
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class CorpusVersionTests(unittest.TestCase):
+class CorpusVersionTests(OfflineModelMixin, unittest.TestCase):
     def test_v2_remains_frozen_and_v3_changes_no_expectation(self):
         self.assertEqual(verify_manifest(suite_root("v2"))["bundle_sha256"],
                          "eeb5c8943255702dcc405bfac4854f9c9d7d8f7f90508af2482cf284024e3405")

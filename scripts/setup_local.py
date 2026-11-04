@@ -4,8 +4,9 @@ Run from the repository: py -m scripts.setup_local (Windows) or python3 -m scrip
 Run with --serve to start the previously installed project model server.
 """
 
-import hashlib
 import json
+import os
+import signal
 import sys
 import subprocess
 import tarfile
@@ -15,7 +16,7 @@ import zipfile
 from docs_radar.model_policy import CONTEXT_TOKENS
 from scripts.setup_support import (
     ASSETS, BASE_URL, GIB, OLLAMA_VERSION, ROOT, LocalModel, Model, SetupError,
-    cached_runtime, check_space, detect_hardware, inspect_models, install_python,
+    cached_runtime, check_space, configured_model, detect_hardware, inspect_models, install_python,
     install_runtime, model_server, prepare_model, recommend_model, runtime_directory,
     supported_runtime, verify_model_reference,
 )
@@ -145,23 +146,15 @@ def setup(ui, root=ROOT):
             "Activate .venv and run from the repository: python -m streamlit run docs_radar/app.py")
     if selection:
         ui.text(f"Model installed: {tag}\nDigest: {digest}\nModel selection has NOT been smoke-tested. "
-                "Start its local-only server with: python -m scripts.setup_local --serve\n"
-                "The setup server has been stopped; no background service was installed.")
+                "The app will start its local-only server automatically; no second terminal is needed.\n"
+                "The temporary setup server has been stopped; no background service was installed.")
     ui.draw()
     return True
 
 
 def serve(ui, root=ROOT):
-    hardware = detect_hardware(root)
-    record = json.loads((root / "models" / "setup.json").read_text(encoding="utf-8"))
-    binary = cached_runtime(hardware)
-    if not binary or not isinstance(record, dict) or record.get("platform") != hardware.system:
-        raise SetupError("No verified runtime for this OS. Rerun setup; do not copy native installations between operating systems.")
-    models = inspect_models(root / "models")
-    selected = next((item for item in models if item.kind == "ollama" and item.usable and item.name == record.get("model")), None)
-    if not selected or hashlib.sha256(selected.path.read_bytes()).hexdigest() != record.get("model_digest"):
-        raise SetupError("The configured local model is missing, incomplete or changed. Rerun setup to select or import a model.")
-    ui.page("Project model server", f"Model: {record['model']}\nLocal API: {BASE_URL}\nCloud disabled; context: {CONTEXT_TOKENS} tokens; idle models unload immediately.",
+    binary, tag = configured_model(root)
+    ui.page("Project model server", f"Model: {tag}\nLocal API: {BASE_URL}\nCloud disabled; context: {CONTEXT_TOKENS} tokens; idle models unload immediately.",
             "Select Model-selected excerpts and this tag in the app. "
             "Keep this terminal open; stopping it terminates only this server.")
     with model_server(binary, root, ui):
@@ -170,7 +163,35 @@ def serve(ui, root=ROOT):
     ui.draw()
 
 
+def offer_launch(ui):
+    try:
+        return ui.choose("Run the application now?", ["No — launch it later", "Yes — run Docs Radar"]) == 1
+    except (Cancelled, KeyboardInterrupt):
+        ui.text("Installation is complete. Application launch cancelled; you can launch it later.")
+        ui.draw()
+        return False
+
+
+def launch_application(root=ROOT):
+    """Use the installed environment, after restoring the installer's terminal UI."""
+    python = root / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    command = [str(python), "-m", "streamlit", "run", "docs_radar/app.py",
+               "--server.address=127.0.0.1", "--browser.gatherUsageStats=false", "--server.headless=false"]
+    options = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt" else {"start_new_session": True}
+    print("Starting Docs Radar. Keep this terminal open; Ctrl+C stops the app and its owned model server.")
+    process = subprocess.Popen(command, cwd=root, **options)
+    while True:
+        try:
+            return process.wait()
+        except KeyboardInterrupt:
+            # The child is isolated from this console's interrupt. Ask Streamlit
+            # to shut down normally so its atexit handlers can stop its model child.
+            if process.poll() is None:
+                process.send_signal(signal.SIGBREAK if os.name == "nt" else signal.SIGTERM)
+
+
 def main():
+    launch = False
     try:
         with TerminalUI() as ui:
             try:
@@ -179,10 +200,9 @@ def main():
                 if sys.argv[1:] == ["--serve"]:
                     serve(ui)
                 elif not sys.argv[1:]:
-                    setup(ui)
+                    launch = setup(ui) and offer_launch(ui)
                 else:
                     raise SetupError("Run python -m scripts.setup_local from the repository, without arguments or with --serve.")
-                return 0
             except (Cancelled, KeyboardInterrupt):
                 ui.page("Cancelled", "Active child processes have been stopped. Existing models were not deleted; rerun to resume setup.")
                 ui.draw()
@@ -194,6 +214,13 @@ def main():
     except Cancelled as error:
         print(str(error), file=sys.stderr)
         return 2
+    if launch:
+        try:
+            return launch_application()
+        except (OSError, subprocess.SubprocessError) as error:
+            print(f"Installation is complete, but the app could not start: {error}", file=sys.stderr)
+            return 1
+    return 0
 
 
 if __name__ == "__main__":

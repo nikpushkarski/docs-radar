@@ -5,13 +5,15 @@ from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
 
+from tests.app_helpers import OfflineModelMixin
+
 from docs_radar.quality_view import available_reports, report_freshness
 from evals.run import evaluate
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class ViewTests(unittest.TestCase):
+class ViewTests(OfflineModelMixin, unittest.TestCase):
     def test_three_views_and_no_implicit_approval(self):
         approvals = (ROOT / "data/approvals.json").read_bytes()
         app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=15).run()

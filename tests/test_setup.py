@@ -441,8 +441,9 @@ class ConsentFlowTests(unittest.TestCase):
                   "model_digest": hashlib.sha256(target.read_bytes()).hexdigest(),
                   "base_url": "https://remote.invalid", "ollama_binary": "untrusted-executable"}
         (self.root / "models" / "setup.json").write_text(json.dumps(record), encoding="utf-8")
-        self.operations["cached_runtime"].return_value = Path("known-runtime/ollama")
-        app.serve(FakeUI([0]), self.root)
+        with patch.object(support, "detect_hardware", return_value=WINDOWS), \
+             patch.object(support, "cached_runtime", return_value=Path("known-runtime/ollama")):
+            app.serve(FakeUI([0]), self.root)
         self.assertEqual(self.server.call_args.args[0], Path("known-runtime/ollama"))
         self.assertTrue(self.server_stopped)
 
@@ -450,8 +451,9 @@ class ConsentFlowTests(unittest.TestCase):
         manifest(self.root / "models")
         record = {"platform": "Windows", "model": "test-model:latest", "model_digest": "wrong"}
         (self.root / "models" / "setup.json").write_text(json.dumps(record), encoding="utf-8")
-        self.operations["cached_runtime"].return_value = Path("known-runtime/ollama")
-        with self.assertRaises(support.SetupError):
+        with patch.object(support, "detect_hardware", return_value=WINDOWS), \
+             patch.object(support, "cached_runtime", return_value=Path("known-runtime/ollama")), \
+             self.assertRaises(support.SetupError):
             app.serve(FakeUI([0]), self.root)
         self.server.assert_not_called()
 

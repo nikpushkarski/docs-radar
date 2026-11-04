@@ -9,6 +9,7 @@ from docs_radar.answers import answer
 from docs_radar.approvals import approval_status
 from docs_radar.content_actions import approve_topic, revoke_topic, save_draft
 from docs_radar.content_fingerprint import content_fingerprint
+from docs_radar.local_runtime import start_app_model
 from docs_radar.detect_impact import preview_change
 from docs_radar.change_preview import highlighted_change
 from docs_radar.quality_view import available_reports, report_freshness
@@ -60,8 +61,12 @@ def show_answer(result):
             st.text(f"Reason: {result['reason']}")
 
 
-def ask_view():
+def ask_view(runtime):
     st.info("Extractive mode is the default — cited excerpts, not model-generated answers.")
+    if runtime.error:
+        st.warning(f"Local model unavailable: {runtime.error} Extractive mode still works.")
+    elif runtime.model:
+        st.caption(f"Local model server ready: {runtime.model}. Started by this app; no second terminal needed.")
     st.caption("Evidence is based on captured documentation, not live policy verification.")
     with st.form("ask"):
         question = st.text_input("Question")
@@ -70,12 +75,20 @@ def ask_view():
         mode_label = st.radio("Answer mode", ["Extractive", "Model-selected excerpts (optional)"], horizontal=True)
         st.caption("No model is needed by default. Optional selection: installed 4B-class model at most, one short call, immediate unload; not a speed guarantee on your device.")
         # Keep the model tag explicit; never select a hosted fallback or download here.
-        model = st.text_input("Installed local model tag", placeholder="For example qwen3:4b")
+        model = st.text_input("Installed local model tag", value=runtime.model, placeholder="For example qwen3:4b")
         submitted = st.form_submit_button("Find evidence")
     if submitted:
         mode = "extractive" if mode_label == "Extractive" else "live-model"
-        st.session_state["last_answer"] = answer(question, audience,
-            reference_date.isoformat() if reference_date else "", mode=mode, model=model or None)
+        if mode == "live-model" and runtime.error:
+            st.session_state.pop("last_answer", None)
+            st.error("Local model selection is unavailable. Retry server startup or explicitly choose extractive mode.")
+        else:
+            st.session_state["last_answer"] = answer(question, audience,
+                reference_date.isoformat() if reference_date else "", mode=mode, model=model or None)
+    if runtime.error and st.button("Retry model server startup", key="retry_model_server"):
+        with st.spinner("Starting the installed local model server…"):
+            start_app_model(ROOT, retry=True)
+        st.rerun()
     result = st.session_state.get("last_answer")
     if result:
         try:
@@ -297,9 +310,11 @@ st.markdown("""<style>
 
 st.title("Docs Radar")
 st.caption("Independent demo using public Fullscript documentation. Not affiliated with or endorsed by Fullscript.")
+with st.spinner("Checking the installed local model server…"):
+    runtime = start_app_model(ROOT)
 ask_tab, content_tab, quality_tab = st.tabs(["Ask and inspect", "Content and changes", "Quality"])
 with ask_tab:
-    ask_view()
+    ask_view(runtime)
 with content_tab:
     try:
         content_view()

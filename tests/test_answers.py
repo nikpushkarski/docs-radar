@@ -7,6 +7,8 @@ from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
 
+from tests.app_helpers import OfflineModelMixin
+
 from docs_radar.answers import answer
 from docs_radar.approvals import load_approvals, record_approval
 from docs_radar.retrieval import load_workspace
@@ -141,7 +143,7 @@ class AnswerPipelineTest(WorkspaceTestCase):
         self.assertNotEqual(self.ask()["run"]["corpus_hash"], before)
 
 
-class AnswerUiTest(WorkspaceTestCase):
+class AnswerUiTest(OfflineModelMixin, WorkspaceTestCase):
     def submit(self, question=QUESTION, audience="Providers"):
         app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=10).run()
         app.text_input[0].input(question)
