@@ -8,9 +8,9 @@ Docs Radar is a demo app that:
 
 There are 3 tabs in the app:
 
-| **Content and changes**  | **Ask and inspect**  | **Quality**  |
+| **Ask and inspect**  | **Content and changes** | **Quality**  |
 |---|---|---|
-| inspect dependencies and review drafts  | check answers and evidence  |  see the recorded results |
+| check answers and evidence  | inspect dependencies and review drafts  |  see the recorded results |
 
 > [!IMPORTANT]
 > Docs Radar is an independent demo and is **not affiliated with, endorsed by, or sponsored by Fullscript**.
