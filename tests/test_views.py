@@ -21,6 +21,26 @@ class ViewTests(unittest.TestCase):
         self.assertTrue(any("Human citation-support review is incomplete" in item.value for item in app.warning))
         self.assertEqual((ROOT / "data/approvals.json").read_bytes(), approvals)
 
+    def test_synthetic_preview_is_visible_and_does_not_write_files(self):
+        paths = [ROOT / "data/approvals.json", ROOT / "data/facts.json",
+                 *sorted((ROOT / "content").glob("*.md"))]
+        before = {path: path.read_bytes() for path in paths}
+        app = AppTest.from_file(str(ROOT / "docs_radar/app.py"), default_timeout=15).run()
+        topic = next(widget for widget in app.selectbox if widget.label == "Topic to inspect")
+        topic.select("rupa-view-only.md").run()
+        self.assertFalse(app.exception)
+        self.assertTrue(any(item.label == "Simulated preview—not saved" for item in app.expander))
+        previews = [item.value for item in app.markdown if '<del ' in item.value]
+        self.assertEqual(len(previews), 1)
+        self.assertIn('2027-01-20</del>', previews[0])
+        self.assertIn('2099-01-01</ins>', previews[0])
+        self.assertTrue(any('2027-01-20' in item.value and '2099-01-01' not in item.value for item in app.text))
+        next(widget for widget in app.selectbox if widget.label == "Topic to inspect").select("patient-unpaid-orders.md").run()
+        self.assertFalse(app.exception)
+        self.assertTrue(any('no simulated edits to show' in item.value for item in app.info))
+        self.assertFalse(any('<del ' in item.value for item in app.markdown))
+        self.assertEqual({path: path.read_bytes() for path in paths}, before)
+
     def test_default_requires_no_model_and_model_output_is_labelled_extractive(self):
         import json
         from datetime import date

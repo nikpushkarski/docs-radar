@@ -9,6 +9,7 @@ from docs_radar.approvals import approval_status
 from docs_radar.content_actions import approve_topic, revoke_topic, save_draft
 from docs_radar.content_fingerprint import content_fingerprint
 from docs_radar.detect_impact import preview_change
+from docs_radar.change_preview import highlighted_change
 from docs_radar.quality_view import available_reports, report_freshness
 from docs_radar.render_topic import render_topic
 from docs_radar.retrieval import load_workspace
@@ -118,6 +119,16 @@ def content_view():
     expected = st.session_state[snapshot_key]
     if expected != fingerprint:
         st.warning("This topic/fact version changed since your review began. Reload before saving or approving.")
+    with st.expander("Simulated preview—not saved", expanded=True):
+        st.caption("Fictional change only. Red/struck through = current value; green/underlined = simulated value. Files and approvals are unchanged.")
+        preview = highlighted_change(text, workspace["facts"], change)
+        if preview is None:
+            st.info("This document has no reference to the changed fact in its Markdown body; no simulated edits to show.")
+        else:
+            # All document/fact text is escaped; only our fixed diff markup is HTML.
+            st.markdown(preview, unsafe_allow_html=True)
+        st.caption("This previews fact substitutions only—not rewritten instructions or updated date-routing metadata. Those still need human review.")
+    st.subheader("Current document—not the simulation")
     st.caption(f"Current fingerprint: {fingerprint}")
     st.text(render_topic(text, workspace["facts"]))
     try:
