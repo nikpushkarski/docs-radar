@@ -38,9 +38,6 @@ Keep the default **Install extractive app only (no model)** for the quickest sta
 Use Up/Down and Enter to navigate, and review the download table before accepting.
 Open http://localhost:8501 after launching the app.
 The default app shows cited excerpts, not model-generated answers.
-The approved v3 corpus passes all **12/12** deterministic cases in both extractive and optional 4B selection modes.
-The full local quality gate passes; human citation-support review remains separate and incomplete.
-Windows clean-checkout installation is verified; native macOS execution is not.
 
 <details>
 <summary>Need more? Expand setup details, current limitations, and verification checks</summary>
