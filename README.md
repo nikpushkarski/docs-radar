@@ -1,13 +1,19 @@
-> [!IMPORTANT]
-> Docs Radar is an independent demo and is **not affiliated with, endorsed by, or sponsored by Fullscript**.
-
 # Docs Radar
 
-## What is it?
+Docs Radar is a demo app that:
 
-Docs Radar flags docs that need updating when shared facts change.
-It answers questions with source-linked excerpts.
-Use **Content and changes** to inspect dependencies and review drafts, **Ask and inspect** for answers and evidence, and **Quality** for recorded results.
+- flags docs that need updating when shared facts change
+
+- answers questions with source-linked excerpts.
+
+There are 3 tabs in the app:
+
+| **Content and changes**  | **Ask and inspect**  | **Quality**  |
+|---|---|---|
+| inspect dependencies and review drafts  | check answers and evidence  |  see the recorded results |
+
+> [!IMPORTANT]
+> Docs Radar is an independent demo and is **not affiliated with, endorsed by, or sponsored by Fullscript**.
 
 ## Tech stack
 
@@ -39,8 +45,9 @@ Windows clean-checkout installation is verified; native macOS execution is not.
 <details>
 <summary>Need more? Expand setup details, current limitations, and verification checks</summary>
 
+## Local installation — Windows and macOS
+
 <details>
-<summary><strong>Local installation — Windows and macOS</strong></summary>
 
 Use Python 3.13; the terminal bootstrap accepts 3.11.8+, but other minors are not the locked installation path.
 Windows validation uses Python 3.13.17: 238 tests, a clean model-free checkout, full local gate, and a real Edge browser workflow passed.
@@ -50,8 +57,9 @@ Content, data, and frozen evaluation fixtures remain in `content/`, `data/`, and
 
 </details>
 
+## Interactive installer
+
 <details>
-<summary><strong>Interactive installer</strong></summary>
 
 Install [Python 3.13](https://www.python.org/downloads/) first; the bootstrap itself uses no third-party packages.
 Run from the project folder in an interactive terminal:
@@ -73,8 +81,9 @@ The complete interactive TUI download flow and native macOS execution have not b
 
 </details>
 
+## Manual extractive-only setup / launching after installation
+
 <details>
-<summary><strong>Manual extractive-only setup / launching after installation</strong></summary>
 
 If you used the installer, skip environment creation and dependency installation below; activate the environment and launch the app.
 Otherwise, use a fresh virtual environment on each machine.
@@ -108,8 +117,8 @@ Tests use separate synthetic approvals; they do not change real content approval
 
 </details>
 
+## Optional local-model setup
 <details>
-<summary><strong>Optional local-model setup</strong></summary>
 
 The no-model path is the recommended demo default, including on a hiring manager's machine.
 Optional model selection uses `docs_radar/generation.py`: approved retrieval → LangChain/Ollama → source indices → complete excerpts.
@@ -165,8 +174,9 @@ Official references: [pinned runtime release](https://github.com/ollama/ollama/r
 
 </details>
 
+## Check source validation
+
 <details>
-<summary><strong>Check source validation</strong></summary>
 
 After activation, run from the project folder on either platform:
 
@@ -179,8 +189,9 @@ These check metadata validation, not answer quality or factual accuracy.
 
 </details>
 
+## Quality checks and frozen evaluation fixtures
+
 <details>
-<summary><strong>Quality checks and frozen evaluation fixtures</strong></summary>
 
 - `evals/v3/` — current frozen cases, five fixtures, and their manifest.
 - `evals/cases.json`, `evals/fixtures/`, `evals/manifest.json` — preserved historical v2.
@@ -234,8 +245,9 @@ No hosted model, paid judge, report upload or hosted CI is configured.
 
 </details>
 
+## Human citation-support review
+
 <details>
-<summary><strong>Human citation-support review</strong></summary>
 
 Open **Quality**, select `reports/final-extractive-v3.json` or `reports/live-selection-4b-v3.json`, then expand **Review recorded citation support**.
 Read each claim beside its cited passage and source link, keeping synthetic cases separate from public evidence.
@@ -256,8 +268,9 @@ It is separate from the immutable original, and no content approval is changed.
 
 </details>
 
+## Fingerprint changes reasoning
+
 <details>
-<summary><strong>Fingerprint changes reasoning</strong></summary>
 
 A topic needs a new review when its text or referenced facts change.
 Its fingerprint tracks those changes without reacting to unrelated facts or JSON field order.
@@ -276,8 +289,9 @@ The approval gate admits a topic only when its current fingerprint matches its s
 
 </details>
 
+## Approval reasoning
+
 <details>
-<summary><strong>Approval reasoning</strong></summary>
 
 | Situation | Result |
 | --- | --- |
@@ -299,8 +313,9 @@ The separately approved v3 evaluation corpus incorporates those revisions; froze
 
 </details>
 
+## Date-aware passage selection
+
 <details>
-<summary><strong>Date-aware passage selection</strong></summary>
 
 Select guidance by audience and reference date rather than expiring an entire topic when one deadline passes.
 Retrieval defaults to today's local date and records it; tests use explicit dates.
