@@ -19,6 +19,9 @@ Saved-document approval is separate and never approves a simulated proposal.
 > [!IMPORTANT]
 > Docs Radar is an independent demo and is **not affiliated with, endorsed by, or sponsored by Fullscript**.
 
+Original project code is [MIT licensed](LICENSE).
+Third-party source excerpts and trademarks are excluded; their owners retain their rights.
+
 ## Tech stack
 
 - **Python + Streamlit** — application logic and web UI.
@@ -46,6 +49,7 @@ Open http://localhost:8501 if the browser does not open automatically.
 Keep the terminal open; Ctrl+C stops the app and its owned model server.
 Closing only the browser tab does not stop them.
 The default app shows cited excerpts, not model-generated answers.
+Try **Providers**, reference date **November 1, 2026**, and ask “Where should I place new lab orders?”
 
 <details>
 <summary>Need more? Expand setup details, current limitations, and verification checks</summary>
@@ -119,7 +123,6 @@ python -m streamlit run docs_radar/app.py
 Open http://localhost:8501 if the browser does not open automatically.
 Run from the repository root: `.streamlit/config.toml` binds the UI to `127.0.0.1` and disables usage telemetry.
 The content-review controls have no authentication; do not expose this server to the network.
-To see excerpts, choose Providers and reference date November 1, 2026, then ask where to place new lab orders.
 Verify startup with `python -m unittest tests.test_app`.
 Run all tests with `python -m unittest discover -s tests -q`.
 Tests use separate synthetic approvals; they do not change real content approvals.
